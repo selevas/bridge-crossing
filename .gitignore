@@ -1,0 +1,7 @@
+node_modules/
+
+*.pdf
+*.sublime-project
+*.sublime-workspace
+*.tar.gz
+*.zip
