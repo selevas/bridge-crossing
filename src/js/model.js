@@ -1,15 +1,17 @@
 window.appModel = function() {
 
+  let controller;
+
   // Validation Functions
 
-  this.checkPosition = position => { if ( position !== 'start' && position !== 'end' ) throw 'invalid_position'; };
+  this.checkSide = side => { if ( side !== 'start' && side !== 'end' ) throw 'invalid_side'; };
 
   /**
    * @typedef {Object} Person
    * @property {number} [id] - The ID of the person. Defaults to person's index in array.
    * @property {string} name - The name of the person.
    * @property {number} crossTime - The time it takes the person to cross the bridge (in minutes).
-   * @property {string} [position] - Where the person is currently located. Accepts 'start' or 'end'. Default 'start'.
+   * @property {string} [side] - Where the person is currently located. Accepts 'start' or 'end'. Default 'start'.
    */
 
   /**
@@ -18,7 +20,7 @@ window.appModel = function() {
    * @typedef {Object} Defaults
    * @property {number} bridgeWidth - The number of people who can cross simultaneously.
    * @property {Person[]} people - The default set of people.
-   * @property {string} torchPosition - The default starting position for the torch.
+   * @property {string} torchSide - The default starting side for the torch.
    */
   const defaults = {
 
@@ -32,7 +34,7 @@ window.appModel = function() {
       { name: 'John', crossTime: 8, },
     ],
 
-    torchPosition: 'start',
+    torchSide: 'start',
 
   };
 
@@ -54,8 +56,8 @@ window.appModel = function() {
         return defaults.bridgeWidth;
       case 'people':
         return JSON.parse(JSON.stringify(defaults.people));
-      case 'torchPosition':
-        return defaults.torchPosition;
+      case 'torchSide':
+        return defaults.torchSide;
       default:
         throw 'unknown_default_property';
     }
@@ -63,7 +65,7 @@ window.appModel = function() {
 
   this.getDefaultBridgeWidth = () => this.getDefaults('bridgeWidth');
   this.getDefaultPeople = () => this.getDefaults('people');
-  this.getDefaultTorchPosition = () => this.getDefaults('torchPosition');
+  this.getDefaultTorchSide = () => this.getDefaults('torchSide');
 
   /**
    * @see {Defaults}
@@ -78,7 +80,7 @@ window.appModel = function() {
   /**
    * @see {Defaults}
    */
-  let torchPosition;
+  let torchSide;
 
   /**
    * @see {State}
@@ -123,7 +125,7 @@ window.appModel = function() {
   this.getNumberOfPeople = () => people.length;
 
   this.getOtherSide = side => {
-    this.checkPosition( side );
+    this.checkSide( side );
     if ( side === 'start' ) return 'end';
     return 'start';
   };
@@ -133,16 +135,16 @@ window.appModel = function() {
   };
 
   this.getPeopleAtStart = () => {
-    return people.filter( person => person.position === 'start' );
+    return people.filter( person => person.side === 'start' );
   };
 
   this.getPeopleAtEnd = () => {
-    return people.filter( person => person.position === 'end' );
+    return people.filter( person => person.side === 'end' );
   };
 
   this.getPeopleAtSide = side => {
-    this.checkPosition( side );
-    return people.filter( person => person.position === side );
+    this.checkSide( side );
+    return people.filter( person => person.side === side );
   };
 
   this.getPersonIdFromName = name => {
@@ -153,14 +155,14 @@ window.appModel = function() {
     return person.id;
   };
 
-  this.getPersonPosition = person => {
+  this.getPersonSide = person => {
     const type = typeof person;
-    if ( type === 'number' ) return people[person].position;
-    if ( type === 'string' ) return people.find( p => p.name === person ).position;
+    if ( type === 'number' ) return people[person].side;
+    if ( type === 'string' ) return people.find( p => p.name === person ).side;
     throw 'person_not_found';
   };
 
-  this.getTorchPosition = () => torchPosition;
+  this.getTorchSide = () => torchSide;
 
 
   // Setters
@@ -171,22 +173,22 @@ window.appModel = function() {
   this.incrementTurnsElapsed = (count = 1) => turnsElapsed += count;
 
   /**
-   * Sets the position of the specified person.
+   * Sets the side of the specified person.
    *
    * @param {string|number} person - The person to set.
-   * @param {string} position - The position to set the person to.
+   * @param {string} side - The side to set the person to.
    *
    * @return void
    */
-  this.setPersonPosition = (person, position) => {
-    this.checkPosition( position );
+  this.setPersonSide = (person, side) => {
+    this.checkSide( side );
     if ( typeof person === 'string' ) person = this.getPersonIdFromName( person );
-    people[person].position = position;
+    people[person].side = side;
   };
 
-  this.setTorchPosition = position => {
-    this.checkPosition( position );
-    torchPosition = position;
+  this.setTorchSide = side => {
+    this.checkSide( side );
+    torchSide = side;
   };
 
 
@@ -224,7 +226,7 @@ window.appModel = function() {
 
     if ( this.isFinalState() ) return this.getState();
 
-    const from = this.getTorchPosition();
+    const from = this.getTorchSide();
     const to = this.getOtherSide( from );
     const peopleOnThisSide = this.getPeopleAtSide( from );
     const selected = [];
@@ -244,10 +246,10 @@ window.appModel = function() {
     }
 
     for ( let i = 0; i < selected.length; i++ ) {
-      this.setPersonPosition( selected[i].id, to );
+      this.setPersonSide( selected[i].id, to );
     }
 
-    this.setTorchPosition( to );
+    this.setTorchSide( to );
 
     this.incrementTurnsElapsed();
     this.incrementTimePassed( selected[ selected.length - 1 ].crossTime );
@@ -269,6 +271,8 @@ window.appModel = function() {
    * @return void
    */
   this.init = () => {
+    controller = window.appController;
+
     bridgeWidth = defaults.bridgeWidth;
     people.length = 0;
     defaults.people.forEach( function( person, index, array ) {
@@ -276,16 +280,18 @@ window.appModel = function() {
         id: index,
         name: person.name,
         crossTime: person.crossTime,
-        position: person.position == null ? 'start' : person.position,
+        side: person.side == null ? 'start' : person.side,
       });
     });
-    torchPosition = defaults.torchPosition;
+    torchSide = defaults.torchSide;
 
     timePassed = 0;
     turnsElapsed = 0;
 
     console.log( defaults );
     console.log( "Model initialized!" );
+
+    return this.getState();
   }
 
 };
