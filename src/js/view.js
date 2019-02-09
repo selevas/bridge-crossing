@@ -19,12 +19,25 @@ window.appView = function() {
    * @property {string} element - The element corresponding to the person.
    * @property {string} name - The person's name.
    * @property {string} side - The side the person is on.
-   * @property {number} xPos - The X position of the element at rest, relative to the main view.
+   * @property {number} xStartPos - The X position of the element at the start, relative to the main view.
+   * @property {number} xEndPos - The X position of the element at the end, relative to the main view.
    */
 
   let people = [];
 
   const peopleToCross = [];
+  const timeToBeginCrossing = 500;
+  const timeToFinishCrossing = 500;
+  let timePassed = 0;
+  let timeToCross = 0;
+  let stage = 0;
+
+  const xBridgePositions = [];
+
+  let yStartPos;
+  let yStartBridgePos;
+  let yEndPos;
+  let yEndBridgePos;
 
   /**
    * The elements object.
@@ -49,6 +62,17 @@ window.appView = function() {
    */
   const el = {
     app: document.getElementById('app'),
+  };
+
+  const dimensions = {
+    mainViewWidth: 300,
+    bridgeWidth: 150,
+    startHeight: 100,
+    startWidth: 300,
+    endHeight: 100,
+    endWidth: 300,
+    personHeight: 40,
+    personWidth: 40,
   };
 
   let isPlaying = false;
@@ -90,9 +114,24 @@ window.appView = function() {
     };
     newPerson.element.classList.add('person');
     newPerson.element.style.backgroundColor = '#' + newPerson.color;
+    newPerson.element.style.height = dimensions.personHeight + 'px';
+    newPerson.element.style.width = dimensions.personWidth + 'px';
     el.mainView.appendChild( newPerson.element );
     // TODO: Generate appearance
     return newPerson;
+  };
+
+  this.refreshXPositions = () => {
+    const xStartIncrement = dimensions.startWidth / ( people.length + 1 );
+    let xStartPos = ( ( dimensions.mainViewWidth - dimensions.startWidth ) / 2 ) + xStartIncrement - ( dimensions.personWidth / 2 );
+    const xEndIncrement = dimensions.endWidth / ( people.length + 1 );
+    let xEndPos = ( ( dimensions.mainViewWidth - dimensions.endWidth ) / 2 ) + xEndIncrement - ( dimensions.personWidth / 2 );
+    people.forEach( person => {
+      person.xStartPos = xStartPos;
+      person.xEndPos = xEndPos;
+      xStartPos += xStartIncrement;
+      xEndPos += xEndIncrement;
+    });
   };
 
   /**
@@ -146,7 +185,61 @@ window.appView = function() {
    *
    * TODO: Describe the rest of the function.
    */
-  this.cross = () => {
+  this.startAcross = () => {
+    stage = 1;
+    peopleToCross.forEach( (person, index) => this.move( person, index ) );
+    setTimeout( this.crossingStageComplete, timeToBeginCrossing );
+  };
+
+  this.crossingStageComplete = () => {
+    console.log( "Crossing Stage Complete: showing 'this'" );
+    console.log( this );
+    switch ( stage ) {
+      case 1:
+        stage = 2;
+        peopleToCross.forEach( (person, index) => this.move( person, index ) );
+        setTimeout( this.crossingStageComplete, timeToCross * 1000 );
+        break;
+      case 2:
+        stage = 3;
+        peopleToCross.forEach( (person, index) => this.move( person, index ) );
+        setTimeout( this.crossingStageComplete, timeToFinishCrossing );
+        break;
+      case 3:
+        stage = 0;
+        if ( isPlaying ) controller.stepForward();
+        break;
+    }
+  };
+
+  this.move = (person, index) => {
+    let yPos, xPos;
+    switch ( stage ) {
+      case 1:
+        yPos = ( person.side === 'start' ? yStartBridgePos : yEndBridgePos );
+        person.element.style.transition = `transform ${timeToBeginCrossing}ms ease-in 0s`;
+        person.element.style.transform = `translate3d(${xBridgePositions[index]}px, ${yPos}px, 0)`;
+        break;
+      case 2:
+        yPos = ( person.side === 'start' ? yEndBridgePos : yStartBridgePos );
+        person.element.style.transition = `transform ${timeToCross}s linear 0`;
+        person.element.style.transform = `translate3d(${xBridgePositions[index]}px, ${yPos}px, 0)`;
+        break;
+      case 3:
+        yPos = ( person.side === 'start' ? yEndPos : yStartPos );
+        xPos = ( person.side === 'start' ? person.xEndPos : person.xStartPos );
+        person.element.style.transition = `transform ${timeToFinishCrossing}ms ease-out 0s`;
+        person.element.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        break;
+    }
+  };
+
+  /**
+   * Initiates the next translation for the given person.
+   *
+   * This function fires on the transitionend event attached to the main view.
+   * It 
+  const nextMove = event => {
 
   };
 
@@ -171,6 +264,8 @@ window.appView = function() {
     console.log( "View now updating!" );
 
     console.log( state );
+
+    if ( state.timePassed === 0 ) timePassed = 0;
 
     modelPeople = state.peopleAtStart.concat( state.peopleAtEnd ).sort( (a, b) => a.id - b.id );
     people.sort( (a, b) => a.id - b.id );
@@ -199,9 +294,22 @@ window.appView = function() {
       }
     }
 
-    if ( newPeople.length > 0 ) people = people.concat( newPeople ).sort( (a, b) => a.id - b.id );
+    if ( newPeople.length > 0 ) {
+      people = people.concat( newPeople ).sort( (a, b) => a.id - b.id );
+      this.refreshXPositions();
+    }
 
-    if ( isPlaying && peopleToCross.length > 0 ) this.cross();
+    if ( isPlaying && peopleToCross.length > 0 ) {
+      xBridgePositions.length = 0;
+      let xIncrement = dimensions.bridgeWidth / ( peopleToCross.length + 1 );
+      let xPos = ( ( dimensions.mainViewWidth - dimensions.bridgeWidth ) / 2 ) + xIncrement - ( dimensions.personWidth / 2);
+      for ( let i = 0; i < peopleToCross.length; i++ ) {
+        xBridgePositions.push( xPos );
+        xPos += xIncrement;
+      }
+      timeToCross = state.timePassed - timePassed;
+      this.startAcross();
+    }
 
     console.log( "View updated!" );
   };
@@ -249,6 +357,13 @@ window.appView = function() {
 
       el.resetButton.setAttribute('id', 'reset');
 
+      el.mainView.style.width = dimensions.mainViewWidth + 'px';
+      el.bridge.style.width = dimensions.bridgeWidth + 'px';
+      el.start.style.height = dimensions.startHeight + 'px';
+      el.start.style.width = dimensions.startWidth + 'px';
+      el.end.style.height = dimensions.endHeight + 'px';
+      el.end.style.width = dimensions.endWidth + 'px';
+
       el.app.appendChild( el.h1 );
       el.app.appendChild( el.mainView );
       el.mainView.appendChild( el.start );
@@ -260,6 +375,15 @@ window.appView = function() {
       el.settings.appendChild( el.resetButton );
       el.settings.appendChild( el.startButton );
       el.settings.appendChild( el.pauseButton );
+
+      el.app.addEventListener( 'transitionend', event => {
+
+      });
+
+      yStartPos = ( dimensions.startHeight / 2 ) - ( dimensions.personHeight / 2 ) ;
+      yStartBridgePos = dimensions.startHeight - ( dimensions.personHeight / 2 );
+      yEndBridgePos = el.mainView.clientHeight - dimensions.endHeight - ( dimensions.personHeight / 2 );
+      yEndPos = el.mainView.clientHeight - ( dimensions.endHeight / 2 ) - ( dimensions.personHeight / 2 );
 
       setTimeout( () => { resolve('The view is ready!'); }, 500 );
     });
