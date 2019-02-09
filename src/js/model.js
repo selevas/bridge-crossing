@@ -119,6 +119,7 @@ window.appModel = function() {
       peopleAtEnd: this.getPeopleAtEnd(),
       timePassed: timePassed,
       turnsElapsed: turnsElapsed,
+      torchSide: torchSide,
     };
   };
 

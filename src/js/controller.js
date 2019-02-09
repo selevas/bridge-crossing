@@ -54,7 +54,6 @@ window.appController = function() {
    * @return void
    */
   const broadcast = data => {
-    console.log( "Broadcast!" );
     subscribedViews.forEach( view => view.update( JSON.parse(JSON.stringify(data)) ) );
   };
 
@@ -68,13 +67,18 @@ window.appController = function() {
   this.getUpdate = view => view.update( model.getState() );
 
   /**
+   * Tells the model to reset.
+   *
+   * @return void
+   */
+  this.resetModel = () => broadcast( model.init() );
+
+  /**
    * Tells the model to step forward one turn.
    *
    * @return void
    */
-  this.stepForward = () => {
-    broadcast( model.stepForward() );
-  };
+  this.stepForward = () => broadcast( model.stepForward() );
 
   /**
    * Initializes the controller.
