@@ -32,6 +32,9 @@ window.appView = function() {
   let timeToCross = 0;
   let stage = 0;
   let currentTimeout = null;
+  let timer = 0;
+  let timerInterval = 100;
+  let timerIntervalObject = null;
 
   let finalState = false;
 
@@ -62,6 +65,8 @@ window.appView = function() {
    * @property {HTMLElement} resetButton - The button to reset the application.
    * @property {HTMLElement} startButton - The button to start the application.
    * @property {HTMLElement} pauseButton - The button to pause the application.
+   * @property {HTMLElement} dataDisplay - The wrapper for the application's various data displays.
+   * @property {HTMLElement} timer - The total time passed for the current run.
    */
   const el = {
     app: document.getElementById('app'),
@@ -213,6 +218,7 @@ window.appView = function() {
         console.log( "Stage 2" );
         stage = 2;
         peopleToCross.forEach( (person, index) => this.move( person, index ) );
+        timerIntervalObject = setInterval( this.incrementTimer, timerInterval );
         currentTimeout = setTimeout( () => this.cross(), timeToCross * 1000 + 100 );
         break;
       case 2:
@@ -260,6 +266,15 @@ window.appView = function() {
     }
   };
 
+  this.incrementTimer = () => {
+    timer += timerInterval;
+    if ( timer >= timePassed * 1000 ) {
+      timer = timePassed * 1000;
+      clearInterval( timerIntervalObject );
+    }
+    el.timer.textContent = timer / 1000;
+  }
+
   /**
    * Updates the view.
    *
@@ -282,7 +297,11 @@ window.appView = function() {
 
     finalState = state.finalState;
 
-    if ( state.timePassed === 0 ) timePassed = 0;
+    if ( state.timePassed === 0 ) {
+      timePassed = 0;
+      timer = 0;
+      el.timer.textContent = '0';
+    }
 
     modelPeople = state.peopleAtStart.concat( state.peopleAtEnd ).sort( (a, b) => a.id - b.id );
     people.sort( (a, b) => a.id - b.id );
@@ -371,6 +390,9 @@ window.appView = function() {
       el.startButton = this.createTextElement('button', 'Start');
       el.pauseButton = this.createTextElement('button', 'Pause');
       el.resumeButton = this.createTextElement('button', 'Resume');
+      el.dataDisplay = document.createElement('div');
+      el.timerLabel = this.createTextElement('div', 'Minutes Passed');
+      el.timer = this.createTextElement('div', '0');
 
       // Note that el.people isn't added yet. We need to wait until the model
       // sends the initialized state before we know how many people to generate.
@@ -384,6 +406,9 @@ window.appView = function() {
       el.resetButton.classList.add('settings-button', 'settings-button-reset');
       el.startButton.classList.add('settings-button', 'settings-button-start');
       el.pauseButton.classList.add('settings-button', 'settings-button-pause');
+      el.dataDisplay.classList.add('data-display');
+      el.timerLabel.classList.add('data-display-timer-label');
+      el.timer.classList.add('data-display-timer');
 
       el.resetButton.setAttribute('id', 'reset');
       el.startButton.setAttribute('id', 'start');
@@ -407,6 +432,10 @@ window.appView = function() {
       el.settings.appendChild( el.resetButton );
       el.settings.appendChild( el.startButton );
       el.settings.appendChild( el.pauseButton );
+
+      el.app.appendChild( el.dataDisplay );
+      el.dataDisplay.appendChild( el.timerLabel );
+      el.dataDisplay.appendChild( el.timer );
 
       el.resetButton.addEventListener( 'click', event => {
         event.preventDefault();

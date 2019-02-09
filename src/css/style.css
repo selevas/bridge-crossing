@@ -78,3 +78,25 @@ h1 {
 .settings-button {
   margin: 0 0 8px 0;
 }
+
+
+
+
+.data-display {
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  padding: 32px;
+  position: absolute;
+  top: 0;
+}
+
+.data-display-timer-label {
+  color: white;
+  font-size: 22px;
+}
+
+.data-display-timer {
+  color: white;
+  font-size: 32px;
+}
