@@ -31,11 +31,15 @@ window.appView = function() {
   let timePassed = 0;
   let timeToCross = 0;
   let stage = 0;
-  let currentTimeout = null;
+  let currentTimeoutObject = null;
   let timer = 0;
   let timerInterval = 100;
   let timerIntervalObject = null;
+  let pausedBridgePercentage = null;
+  let pausedYBridgePosition = null;
 
+  let isPlaying = false;
+  let isPaused = false;
   let finalState = false;
 
   const xBridgePositions = [];
@@ -83,8 +87,6 @@ window.appView = function() {
     personWidth: 40,
   };
 
-  let isPlaying = false;
-
   //let orientation;
 
 
@@ -92,6 +94,7 @@ window.appView = function() {
 
 
   this.getIsPlaying = () => isPlaying;
+  this.getIsPaused = () => isPaused;
 
   this.getPeople = () => people;
 
@@ -103,6 +106,11 @@ window.appView = function() {
   this.getTimeToCross = () => timeToCross;
 
   this.getXBridgePositions = () => xBridgePositions;
+
+  this.getTimerInterval = () => timerInterval;
+
+  this.getPausedBridgePercentage = () => pausedBridgePercentage;
+  this.getPausedYBridgePosition = () => pausedYBridgePosition;
 
 
   // Actions
@@ -129,10 +137,10 @@ window.appView = function() {
       name: name,
       side: side,
       element: document.createElement('div'),
-      color: Math.floor( Math.random()*16777215 ).toString(16),
+      color: `rgb(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)})`,
     };
     newPerson.element.classList.add('person');
-    newPerson.element.style.backgroundColor = '#' + newPerson.color;
+    newPerson.element.style.backgroundColor = newPerson.color;
     newPerson.element.style.height = dimensions.personHeight + 'px';
     newPerson.element.style.width = dimensions.personWidth + 'px';
     el.mainView.appendChild( newPerson.element );
@@ -205,27 +213,41 @@ window.appView = function() {
    * 
    */
   this.cross = () => {
-    console.log( "Timeout: ", currentTimeout );
-    clearTimeout( currentTimeout );
+    if ( isPaused ) return;
+    console.log( "Timeout: ", currentTimeoutObject );
+    clearTimeout( currentTimeoutObject );
     switch ( stage ) {
       case 0:
         console.log( "Stage 1" );
         stage = 1;
         peopleToCross.forEach( (person, index) => this.move( person, index ) );
-        currentTimeout = setTimeout( () => this.cross(), timeToBeginCrossing + 100 );
+        currentTimeoutObject = setTimeout( () => this.cross(), timeToBeginCrossing + 100 );
         break;
       case 1:
         console.log( "Stage 2" );
         stage = 2;
-        peopleToCross.forEach( (person, index) => this.move( person, index ) );
+
+        let timeToCrossRemaining, timerIntervalRemaining;
+        if ( pausedBridgePercentage == null ) {
+          timeToCrossRemaining = timeToCross;
+        }
+        else {
+          timeToCrossRemaining = timeToCross * pausedBridgePercentage;
+        }
+
+        console.log( "timerIntervalRemaining: ", timerIntervalRemaining );
+
+        peopleToCross.forEach( (person, index) => this.move( person, index, timeToCrossRemaining ) );
         timerIntervalObject = setInterval( this.incrementTimer, timerInterval );
-        currentTimeout = setTimeout( () => this.cross(), timeToCross * 1000 + 100 );
+        currentTimeoutObject = setTimeout( () => this.cross(), timeToCrossRemaining + 100 );
+        pausedYBridgePosition = null;
+        pausedBridgePercentage = null;
         break;
       case 2:
         console.log( "Stage 3" );
         stage = 3;
         peopleToCross.forEach( (person, index) => this.move( person, index ) );
-        currentTimeout = setTimeout( () => this.cross(), timeToFinishCrossing + 100 );
+        currentTimeoutObject = setTimeout( () => this.cross(), timeToFinishCrossing + 100 );
         break;
       case 3:
         console.log( "Stage 0" );
@@ -238,7 +260,7 @@ window.appView = function() {
     }
   };
 
-  this.move = (person, index) => {
+  this.move = (person, index, duration = null) => {
     let yPos, xPos;
     switch ( stage ) {
       case 0:
@@ -249,18 +271,28 @@ window.appView = function() {
         break;
       case 1:
         yPos = ( person.side === 'start' ? yStartBridgePos : yEndBridgePos );
-        person.element.style.transition = `transform ${timeToBeginCrossing}ms ease-in 0s`;
+        person.element.style.transition = `transform ${duration == null ? timeToBeginCrossing : duration}ms ease-in 0s`;
         person.element.style.transform = `translate3d(${xBridgePositions[index]}px, ${yPos}px, 0)`;
         break;
       case 2:
-        yPos = ( person.side === 'start' ? yEndBridgePos : yStartBridgePos );
-        person.element.style.transition = `transform ${timeToCross}s linear 0s`;
+        // If pausedYBridgePosition isn't null, then it means we just paused and the people should be
+        // set to that position on the bridge.
+        // Otherwise, move them to whichever end of the bridge they are headed.
+
+        if ( isPaused ) yPos = pausedYBridgePosition;
+        else            yPos = person.side === 'start' ? yEndBridgePos : yStartBridgePos;
+        
+        let timeToCrossRemaining;
+        if ( duration != null ) timeToCrossRemaining = duration;
+        else                    timeToCrossRemaining = timeToCross;
+
+        person.element.style.transition = `transform ${duration == null ? timeToCrossRemaining : duration}ms linear 0s`;
         person.element.style.transform = `translate3d(${xBridgePositions[index]}px, ${yPos}px, 0)`;
         break;
       case 3:
         yPos = ( person.side === 'start' ? yEndPos : yStartPos );
         xPos = ( person.side === 'start' ? person.xEndPos : person.xStartPos );
-        person.element.style.transition = `transform ${timeToFinishCrossing}ms ease-out 0s`;
+        person.element.style.transition = `transform ${duration == null ? timeToFinishCrossing : duration}ms ease-out 0s`;
         person.element.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
         break;
     }
@@ -268,12 +300,43 @@ window.appView = function() {
 
   this.incrementTimer = () => {
     timer += timerInterval;
-    if ( timer >= timePassed * 1000 ) {
-      timer = timePassed * 1000;
+    if ( timer >= timePassed ) {
+      timer = timePassed;
       clearInterval( timerIntervalObject );
     }
     el.timer.textContent = timer / 1000;
   }
+
+  this.start = event => {
+    if ( isPaused ) {
+      isPaused = false;
+      this.cross();
+      return;
+    }
+    
+    // Only initiate the cross if the application either hasn't started a run yet
+    // or has already finished one.
+    // If you want to reset the run, the user should press the reset button.
+    if ( finalState ) {
+      isPlaying = false;
+      this.reset();
+      setTimeout( this.start, 100 );
+      return;
+    }
+    
+    if ( timePassed === 0 ) {
+      isPlaying = true;
+      stage = 3;
+      this.cross();
+    }
+  };
+
+  this.reset = event => {
+    isPlaying = false;
+    isPaused = false;
+    stage = 0;
+    controller.resetModel();
+  };
 
   /**
    * Updates the view.
@@ -313,6 +376,8 @@ window.appView = function() {
     console.log( modelPeople );
     console.log( people );
 
+    // Determine if there are differences between the model and the view in terms of
+    // people, and reconcile any differences.
     while ( i < modelPeople.length || j < people.length ) {
       if ( j >= people.length || modelPeople[i].id < people[j].id ) {
         // model has a person view doesn't, therefore add it
@@ -345,9 +410,10 @@ window.appView = function() {
     stage = 0;
 
     // If it's not currently playing, then reset everyone to the positions given in the update.
-    // Otherwise, if it is playing, then 
-    if ( ! isPlaying ) people.forEach( person => this.move( person, 0 ) );
+    if ( ! isPlaying ) people.forEach( person => this.move( person, 0, 0 ) );
 
+    // Otherwise, if it is playing, set up the X bridge positions based on how many are
+    // crossing, increment the total time passed, and initiate the next crossing.
     if ( isPlaying && peopleToCross.length > 0 ) {
       xBridgePositions.length = 0;
       let xIncrement = dimensions.bridgeWidth / ( peopleToCross.length + 1 );
@@ -356,8 +422,8 @@ window.appView = function() {
         xBridgePositions.push( xPos );
         xPos += xIncrement;
       }
-      timeToCross = state.timePassed - timePassed;
-      timePassed = state.timePassed;
+      timeToCross = state.timePassed * 1000 - timePassed;
+      timePassed = state.timePassed * 1000;
       this.cross();
     }
   };
@@ -376,9 +442,15 @@ window.appView = function() {
    *
    * @return void
    */
-  (this.start = () => {
+  (() => {
 
     let loadView = new Promise( resolve => {
+
+      // Generation of HTML elements.
+
+      // Note that el.people isn't added yet. We need to wait until the model
+      // sends the initialized state before we know how many people to generate.
+
       el.h1 = this.createTextElement( 'h1', 'Bridge Crossing' );
       el.mainView = document.createElement('div');
       el.bridge = document.createElement('div');
@@ -394,8 +466,7 @@ window.appView = function() {
       el.timerLabel = this.createTextElement('div', 'Minutes Passed');
       el.timer = this.createTextElement('div', '0');
 
-      // Note that el.people isn't added yet. We need to wait until the model
-      // sends the initialized state before we know how many people to generate.
+      // Assignment of classes
 
       el.mainView.classList.add('main-view');
       el.bridge.classList.add('bridge');
@@ -410,9 +481,13 @@ window.appView = function() {
       el.timerLabel.classList.add('data-display-timer-label');
       el.timer.classList.add('data-display-timer');
 
+      // Assignment of ID attributes
+
       el.resetButton.setAttribute('id', 'reset');
       el.startButton.setAttribute('id', 'start');
       el.pauseButton.setAttribute('id', 'pause');
+
+      // Assignment of inline styles
 
       el.mainView.style.width = dimensions.mainViewWidth + 'px';
       el.bridge.style.width = dimensions.bridgeWidth + 'px';
@@ -420,6 +495,8 @@ window.appView = function() {
       el.start.style.width = dimensions.startWidth + 'px';
       el.end.style.height = dimensions.endHeight + 'px';
       el.end.style.width = dimensions.endWidth + 'px';
+
+      // Construction of the view's DOM
 
       el.app.appendChild( el.h1 );
       el.app.appendChild( el.mainView );
@@ -437,18 +514,45 @@ window.appView = function() {
       el.dataDisplay.appendChild( el.timerLabel );
       el.dataDisplay.appendChild( el.timer );
 
+      // Event Listeners
+
       el.resetButton.addEventListener( 'click', event => {
         event.preventDefault();
-        isPlaying = false;
-        stage = 0;
-        controller.resetModel();
+        this.reset( event );
       });
 
       el.startButton.addEventListener( 'click', event => {
         event.preventDefault();
-        isPlaying = true;
-        stage = 3;
-        this.cross();
+        this.start( event );
+      });
+
+      el.pauseButton.addEventListener( 'click', event => {
+        event.preventDefault();
+        if ( ! isPlaying || isPaused ) return;
+        isPaused = true;
+        clearTimeout( currentTimeoutObject );
+        switch ( stage ) {
+          case 0:
+            // this probably shouldn't happen since stage 0 doesn't have a duration
+            stage = 3;
+            break;
+          case 1:
+          case 3:
+            // set the stage back to the previous one
+            stage--;
+            // instantly move them back to their starting positions for the stage, since that portion
+            // of time isn't being tracked by the timer.
+            peopleToCross.forEach( (person, index) => this.move( person, index, 0 ) );
+            break;
+          case 2:
+            // this is the stage where they are crossing the bridge and the timer is going
+            clearInterval( timerIntervalObject );
+            pausedBridgePercentage = ( timePassed - timer ) / timeToCross;
+            pausedYBridgePosition = dimensions.startHeight + el.bridge.clientHeight - ( el.bridge.clientHeight * (peopleToCross[0].side === 'start' ? pausedBridgePercentage : 1 - pausedBridgePercentage) );
+            peopleToCross.forEach( (person, index) => this.move( person, index, 0 ) );
+            stage--;
+            break;
+        }
       });
 
       yStartPos = ( dimensions.startHeight / 2 ) - ( dimensions.personHeight / 2 ) ;
