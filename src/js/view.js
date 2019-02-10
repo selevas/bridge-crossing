@@ -64,7 +64,6 @@ window.appView = function() {
    * @property {HTMLElement} start - The element representing the start area.
    * @property {HTMLElement} end - The element representing the end area.
    * @property {HTMLElement[]} people - The elements representing each person.
-   * @property {HTMLElement} coordsLayer - The coordinates layer for the main view. When switching to horizontal, it is rotated 90 degrees, thus keeping animation coordinates correct.
    * @property {HTMLElement} settings - The wrapper for the application's various settings controls.
    * @property {HTMLElement} resetButton - The button to reset the application.
    * @property {HTMLElement} startButton - The button to start the application.
@@ -143,10 +142,63 @@ window.appView = function() {
     newPerson.element.style.backgroundColor = newPerson.color;
     newPerson.element.style.height = dimensions.personHeight + 'px';
     newPerson.element.style.width = dimensions.personWidth + 'px';
+    newPerson.element.setAttribute( 'data-id', id );
     el.mainView.appendChild( newPerson.element );
     // TODO: Generate appearance
     return newPerson;
   };
+
+  this.isOverStart = (x, y) => {
+    const bounds = el.start.getBoundingClientRect();
+    return ( x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height );
+  }
+
+  this.isOverEnd = (x, y) => {
+    const bounds = el.end.getBoundingClientRect();
+    return ( x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height );
+  };
+
+  this.enableDraggable = (person) => {
+    if ( person == null ) return;
+    let oldX = ( person.side === 'start' ? person.xStartPos : person.xEndPos );
+    let oldY = ( person.side === 'start' ? yStartPos : yEndPos );
+    let newX, newY;
+    person.element.addEventListener( 'mousedown', event => {
+      console.log( event );
+      if ( timePassed !== 0 ) this.reset( event );
+      oldX = event.clientX;
+      oldY = event.clientY;
+      document.onmousemove = e => {
+        e = e || window.event;
+        e.preventDefault();
+        newX = oldX - e.clientX;
+        newY = oldY - e.clientY;
+        oldX = e.clientX;
+        oldY = e.clientY;
+        person.element.style.left = (person.element.offsetLeft - newX) + 'px';
+        person.element.style.top = (person.element.offsetTop - newY) + 'px';
+      };
+      document.onmouseup = e => {
+        document.onmousemove = null;
+        document.onmouseup = null;
+        console.log( "Mouse up!", e );
+        console.log( el.end.getBoundingClientRect() );
+        console.log( "Side: ", person.side );
+        if ( person.side === 'start' && this.isOverEnd(e.clientX, e.clientY) ) {
+          // If the mouse ends inside the end, move the person there
+          controller.movePerson( person.id, 'end' );
+        }
+        else if ( person.side === 'end' && this.isOverStart(e.clientX, e.clientY) ) {
+          // If the mouse ends inside the start, move the person there
+          controller.movePerson( person.id, 'start' );
+        }
+        // In any case, remove the left and top offsets of the person element.
+        person.element.style.left = '0';
+        person.element.style.top = '0';
+        return;
+      };
+    });
+  }
 
   this.refreshXPositions = () => {
     const xStartIncrement = dimensions.startWidth / ( people.length + 1 );
@@ -307,6 +359,13 @@ window.appView = function() {
     el.timer.textContent = timer / 1000;
   }
 
+  this.reset = event => {
+    isPlaying = false;
+    isPaused = false;
+    stage = 0;
+    controller.resetModel();
+  };
+
   this.start = event => {
     if ( isPaused ) {
       isPaused = false;
@@ -331,11 +390,32 @@ window.appView = function() {
     }
   };
 
-  this.reset = event => {
-    isPlaying = false;
-    isPaused = false;
-    stage = 0;
-    controller.resetModel();
+  this.pause = event => {
+    if ( ! isPlaying || isPaused ) return;
+    isPaused = true;
+    clearTimeout( currentTimeoutObject );
+    switch ( stage ) {
+      case 0:
+        // this probably shouldn't happen since stage 0 doesn't have a duration
+        stage = 3;
+        break;
+      case 1:
+      case 3:
+        // set the stage back to the previous one
+        stage--;
+        // instantly move them back to their starting positions for the stage, since that portion
+        // of time isn't being tracked by the timer.
+        peopleToCross.forEach( (person, index) => this.move( person, index, 0 ) );
+        break;
+      case 2:
+        // this is the stage where they are crossing the bridge and the timer is going
+        clearInterval( timerIntervalObject );
+        pausedBridgePercentage = ( timePassed - timer ) / timeToCross;
+        pausedYBridgePosition = dimensions.startHeight + el.bridge.clientHeight - ( el.bridge.clientHeight * (peopleToCross[0].side === 'start' ? pausedBridgePercentage : 1 - pausedBridgePercentage) );
+        peopleToCross.forEach( (person, index) => this.move( person, index, 0 ) );
+        stage--;
+        break;
+    }    
   };
 
   /**
@@ -402,6 +482,7 @@ window.appView = function() {
     if ( newPeople.length > 0 ) {
       people = people.concat( newPeople ).sort( (a, b) => a.id - b.id );
       this.refreshXPositions();
+      people.forEach( this.enableDraggable );
     }
 
     // stage should be set to zero here, because if we receive an update from the model while we're in
@@ -456,7 +537,6 @@ window.appView = function() {
       el.bridge = document.createElement('div');
       el.start = document.createElement('div');
       el.end = document.createElement('div');
-      el.coordsLayer = document.createElement('div');
       el.settings = document.createElement('div');
       el.resetButton = this.createTextElement('button', 'Reset');
       el.startButton = this.createTextElement('button', 'Start');
@@ -472,7 +552,6 @@ window.appView = function() {
       el.bridge.classList.add('bridge');
       el.start.classList.add('start');
       el.end.classList.add('end');
-      el.coordsLayer.classList.add('main-view-coords-layer');
       el.settings.classList.add('settings');
       el.resetButton.classList.add('settings-button', 'settings-button-reset');
       el.startButton.classList.add('settings-button', 'settings-button-start');
@@ -503,7 +582,6 @@ window.appView = function() {
       el.mainView.appendChild( el.start );
       el.mainView.appendChild( el.bridge );
       el.mainView.appendChild( el.end );
-      el.mainView.appendChild( el.coordsLayer );
       
       el.app.appendChild( el.settings );
       el.settings.appendChild( el.resetButton );
@@ -528,33 +606,11 @@ window.appView = function() {
 
       el.pauseButton.addEventListener( 'click', event => {
         event.preventDefault();
-        if ( ! isPlaying || isPaused ) return;
-        isPaused = true;
-        clearTimeout( currentTimeoutObject );
-        switch ( stage ) {
-          case 0:
-            // this probably shouldn't happen since stage 0 doesn't have a duration
-            stage = 3;
-            break;
-          case 1:
-          case 3:
-            // set the stage back to the previous one
-            stage--;
-            // instantly move them back to their starting positions for the stage, since that portion
-            // of time isn't being tracked by the timer.
-            peopleToCross.forEach( (person, index) => this.move( person, index, 0 ) );
-            break;
-          case 2:
-            // this is the stage where they are crossing the bridge and the timer is going
-            clearInterval( timerIntervalObject );
-            pausedBridgePercentage = ( timePassed - timer ) / timeToCross;
-            pausedYBridgePosition = dimensions.startHeight + el.bridge.clientHeight - ( el.bridge.clientHeight * (peopleToCross[0].side === 'start' ? pausedBridgePercentage : 1 - pausedBridgePercentage) );
-            peopleToCross.forEach( (person, index) => this.move( person, index, 0 ) );
-            stage--;
-            break;
-        }
+        this.pause( event );
       });
 
+      // TODO: Make this a function, so that dimensions can be recalculated later,
+      // perhaps based on a screen resize, etc.
       yStartPos = ( dimensions.startHeight / 2 ) - ( dimensions.personHeight / 2 ) ;
       yStartBridgePos = dimensions.startHeight - ( dimensions.personHeight / 2 );
       yEndBridgePos = el.mainView.clientHeight - dimensions.endHeight - ( dimensions.personHeight / 2 );

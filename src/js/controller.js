@@ -80,6 +80,11 @@ window.appController = function() {
    */
   this.stepForward = () => broadcast( model.stepForward() );
 
+  this.movePerson = (personId, side) => {
+    model.setPersonSide( personId, side );
+    broadcast( model.getState() );
+  };
+
   /**
    * Initializes the controller.
    *
