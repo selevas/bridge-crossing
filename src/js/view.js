@@ -404,6 +404,27 @@ window.appView = function() {
   };
 
   /**
+   * Removes the person of the specified object.
+   *
+   * This will remove the person from the view, including its element.
+   *
+   * @param {number} id - The ID of the person to be removed.
+   *
+   * @return void
+   */
+  this.removePerson = id => {
+    const person = people.find( person => person.id === id );
+    person.element.remove();
+    people.splice(id, 1);
+    const remainingPeopleElements = document.querySelectorAll('.person');
+    remainingPeopleElements.forEach( element => {
+      const dataId = Number(element.getAttribute('data-id'));
+      const person = people.find( person => person.id === dataId );
+      element.style.backgroundColor = person.color;
+    });
+  }
+
+  /**
    * Determines whether the X and Y coordinates fall within the Start element.
    *
    * This is used when dragging a person's element to the other side.
@@ -809,14 +830,26 @@ window.appView = function() {
     // Determine if there are differences between the model and the view in terms of
     // people, and reconcile any differences.
     while ( i < modelPeople.length || j < people.length ) {
-      if ( j >= people.length || modelPeople[i].id < people[j].id ) {
+      if ( j >= people.length ) {
         // model has a person view doesn't, therefore add it
         newPeople.push( this.createPerson( modelPeople[i].id, modelPeople[i].name, modelPeople[i].side ) );
         i++;
       }
-      else if ( i >= modelPeople.length || modelPeople[i].id > people[j].id ) {
+      else if ( i >= modelPeople.length ) {
         // view has a person model doesn't, therefore delete it
-        people.splice(j, 1);
+        this.removePerson( people[j].id );
+        j++;
+      }
+      else if ( modelPeople[i].id < people[j].id ) {
+        // note that this is a duplicate of the first conditional: this is because it was
+        // throwing an index-out-of-bounds error when testing it with an ||
+        // TODO: Figure out a way to make this more efficient
+        newPeople.push( this.createPerson( modelPeople[i].id, modelPeople[i].name, modelPeople[i].side ) );
+        i++;
+      }
+      else if ( modelPeople[i].id > people[j].id ) {
+        // TODO: See previous else if
+        this.removePerson( people[j].id );
         j++;
       }
       else {
@@ -897,6 +930,8 @@ window.appView = function() {
       el.addPersonName = document.createElement('input');
       el.addPersonCrossTime = document.createElement('input');
       el.addPerson = this.createTextElement('button', 'Add Person');
+      el.removePersonId = document.createElement('input');
+      el.removePerson = this.createTextElement('button', 'Remove Person');
       el.bridgeWidthLabel = this.createTextElement('div', 'Bridge Width');
       el.bridgeWidth = document.createElement('input');
       el.dataDisplay = document.createElement('div');
@@ -922,6 +957,8 @@ window.appView = function() {
       el.addPersonName.classList.add('settings-field', 'settings-field-add-person-name');
       el.addPersonCrossTime.classList.add('settings-field', 'settings-field-add-person-cross-time');
       el.addPerson.classList.add('settings-button', 'settings-button-add-person');
+      el.removePersonId.classList.add('settings-field', 'settings-field-remove-person-id');
+      el.removePerson.classList.add('settings-button', 'settings-button-remove-person');
       el.bridgeWidthLabel.classList.add('settings-label', 'settings-label-bridge-width');
       el.bridgeWidth.classList.add('settings-field', 'settings-bridge-width');
       el.dataDisplay.classList.add('data-display');
@@ -971,6 +1008,8 @@ window.appView = function() {
       el.settings.appendChild( el.addPersonName );
       el.settings.appendChild( el.addPersonCrossTime );
       el.settings.appendChild( el.addPerson );
+      el.settings.appendChild( el.removePersonId );
+      el.settings.appendChild( el.removePerson );
       el.settings.appendChild( el.bridgeWidthLabel );
       el.settings.appendChild( el.bridgeWidth );
 
@@ -1008,9 +1047,17 @@ window.appView = function() {
         console.log( "Name: ", name );
         console.log( "Cross Time: ", crossTime );
         if ( name.length <= 0 || ! /\d+/.test(crossTime) ) { console.log( "Invalid!" ); return; }
-        el.addPersonName.setAttribute('value', '');
-        el.addPersonCrossTime.setAttribute('value', '');
+        el.addPersonName.value = '';
+        el.addPersonCrossTime.value = '';
         controller.addPerson(name, Number(crossTime));
+      });
+
+      el.removePerson.addEventListener( 'click', event => {
+        event.preventDefault();
+        const id = el.removePersonId.value;
+        if ( ! /\d+/.test(id) ) { console.log( "Invalid!" ); return; }
+        el.removePersonId.value = '';
+        controller.removePerson(id);
       });
 
       el.bridgeWidth.addEventListener( 'change', event => {
@@ -1020,7 +1067,7 @@ window.appView = function() {
           controller.setBridgeWidth( Number(val) );
         }
         else {
-          event.target.setAttribute('value', controller.getBridgeWidth());
+          event.target.value = controller.getBridgeWidth();
         }
       });
 
