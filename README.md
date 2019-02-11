@@ -14,3 +14,5 @@ While I accomplished most of the tasks set forth in the exercise, the state of t
 
 On the other hand, there was one thing I added beyond the requirements of the exercise, and that was to allow for variable bridge width. You can set it on the right hand side of the view.
 
+Also, the music I was going to use is in src/media.
+
