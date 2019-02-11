@@ -221,6 +221,48 @@ window.appModel = function() {
    * with the torch, the turnsElapsed variable is incremented and the timePassed
    * variable is increased by the highest crossTime of all selected people.
    *
+   * A COMPLICATION:
+   *
+   * If the model is set to begin with someone on the opposite side, then the
+   * most efficient choice becomes more complicated. As the simplest example,
+   * imagine that the fastest person starts on the opposite side. In such a case,
+   * it is much more efficient to send the two slowest people at the start over
+   * together so that the fastest one can return on his own.
+   *
+   * However, at the other extreme, if the slowest person is already on the other
+   * side, then we ignore him and carry on like normal.
+   *
+   * But what if it's someone in the middle? How do we know if we should send one
+   * of our fastest, or only our slowest?
+   *
+   * After running some samples, I came up with the following algorithm:
+   *
+   * IF time = 0 AND end has at least one person AND number at start is greater than bridge width:
+   *   Get the TIME_SECURED_A by adding each of the slowest from the start (up to bridge width) + all present on opposite side - fastest of these
+   *   Get the TIME_ELAPSED_A by adding the slowest from start + fastest of the new end
+   *   Get the TIME_SECURED_B by adding each of the slowest from the start (up to bridge width - 1) + all present on opposite side
+   *   Get the TIME_ELAPSED_B by adding the slowest from start + fastest of the new end
+   *   Compare (TIME_SECURED_A - TIME_ELAPSED_A) with (TIME_SECURED_B - TIME_ELAPSED_B) and select whichever is greater
+   *
+   * Following this algorithm, if A is greater than B, then we send all our
+   * slowest over, with the fastest on the opposite side then returning. If B is
+   * greater than A, then we send the fastest we already have on the starting side
+   * over with the slowest. This results in the greatest time efficiency.
+   *
+   * To clarify, "Time Secured" is the term I came up with to describe the amount
+   * of "crossing time" that we've permanently gotten to the other side. In other
+   * words, any people who have crossed over and who will never come back over are
+   * counted as "secured"
+   *
+   * As another interesting note, this algorithm is only required on the very
+   * first turn of the model. Afterward, it will always revert to the original
+   * algorithm, with the fastest person at the start accompanying the slowest
+   * across. This is because starting with someone on the other side could
+   * result in a state that is less efficient than what the algorithm would
+   * normally produce. If we consider the example of the fastest person starting
+   * by himself on the other side, that would never happen as a result of the
+   * original algorithm.
+   *
    * @return {State} - The state of the model when the step is complete.
    */
   this.stepForward = () => {
@@ -230,19 +272,65 @@ window.appModel = function() {
     const from = this.getTorchSide();
     const to = this.getOtherSide( from );
     const peopleOnThisSide = this.getPeopleAtSide( from );
+    const peopleOnThatSide = this.getPeopleAtSide( to );
     const selected = [];
     selected.length = 0;
  
     peopleOnThisSide.sort( (personA, personB) => personA.crossTime - personB.crossTime );
-    selected.push( peopleOnThisSide[0] );
-    if ( from === 'start' && peopleOnThisSide.length > 1 ) {
-      if ( bridgeWidth > 2 ) {
-        for ( let i = Math.max( 1, peopleOnThisSide.length - (bridgeWidth - 1) ); i < peopleOnThisSide.length ; i++ ) {
-          selected.push( peopleOnThisSide[ i ] );
+
+    if ( turnsElapsed === 0 && peopleOnThatSide.length > 0 && peopleOnThisSide.length > bridgeWidth ) {
+      // See the COMPLICATION section of this function's documentation
+      peopleOnThatSide.sort( (personA, personB) => personA.crossTime - personB.crossTime );
+      let timeSecuredA = 0, timeSecuredB = 0;
+      let timeElapsedA = 0, timeElapsedB = 0;
+      let personWithMinimumCrossTime = peopleOnThisSide[ peopleOnThisSide.length - 1 ];
+      for ( let i = peopleOnThisSide.length - 1; i > peopleOnThisSide.length - 1 - bridgeWidth; i-- ) {
+        console.log( 'i: ', i, 'pwmct: ', personWithMinimumCrossTime );
+        timeSecuredA += peopleOnThisSide[i].crossTime;
+        personWithMinimumCrossTime = (peopleOnThisSide[i].crossTime < personWithMinimumCrossTime.crossTime ? peopleOnThisSide[i] : personWithMinimumCrossTime);
+        if ( i !== peopleOnThisSide.length - bridgeWidth ) {
+          timeSecuredB += peopleOnThisSide[i].crossTime;
+        }
+      }
+      for ( let i = 0; i < peopleOnThatSide.length; i++ ) {
+        timeSecuredA += peopleOnThatSide[i].crossTime;
+        timeSecuredB += peopleOnThatSide[i].crossTime;
+        personWithMinimumCrossTime = (peopleOnThatSide[i].crossTime < personWithMinimumCrossTime.crossTime ? peopleOnThatSide[i] : personWithMinimumCrossTime);
+      }
+      timeSecuredA -= personWithMinimumCrossTime.crossTime;
+
+      timeElapsedA = peopleOnThisSide[ peopleOnThisSide.length - 1 ].crossTime + personWithMinimumCrossTime.crossTime;
+      timeElapsedB = peopleOnThisSide[ peopleOnThisSide.length - 1 ].crossTime + peopleOnThisSide[0].crossTime;
+
+      //console.log( 'Person with minimum Cross Time: ', personWithMinimumCrossTime );
+      //console.log( 'Time Elapsed A: ', timeElapsedA );
+      //console.log( 'Time Secured A: ', timeSecuredA );
+      //console.log( 'Time Elapsed B: ', timeElapsedB );
+      //console.log( 'Time Secured B: ', timeSecuredB );
+
+      if ( timeSecuredA - timeElapsedA > timeSecuredB - timeElapsedB ) {
+        // Then we send over only our slowest
+        for ( let i = Math.max( selected.length, peopleOnThisSide.length - bridgeWidth ); i < peopleOnThisSide.length; i++ ) {
+          selected.push( peopleOnThisSide[i] );
         }
       }
       else {
-        selected.push( peopleOnThisSide[ peopleOnThisSide.length - 1 ] );
+        // Otherwise, we send our fastest with the slowest
+        selected.push( peopleOnThisSide[0] );
+        for ( let i = Math.max( selected.length, peopleOnThisSide.length - (bridgeWidth - selected.length) ); i < peopleOnThisSide.length; i++ ) {
+          selected.push( peopleOnThisSide[i] );
+        }
+      }
+      // END of COMPLICATION
+    }
+    else {
+      // Standard algorithm
+      selected.push( peopleOnThisSide[0] );
+
+      if ( from === 'start' && peopleOnThisSide.length > 1 ) {
+        for ( let i = Math.max( selected.length, peopleOnThisSide.length - (bridgeWidth - selected.length) ); i < peopleOnThisSide.length; i++ ) {
+          selected.push( peopleOnThisSide[ i ] );
+        }
       }
     }
 
