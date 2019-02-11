@@ -92,12 +92,27 @@ h1 {
   top: 0;
 }
 
-.data-display-timer-label {
+.data-display-timer-label,
+.data-display-turns-label,
+.data-display-torch-side-label,
+.data-display-final-state-label {
   color: white;
   font-size: 22px;
 }
 
-.data-display-timer {
-  color: white;
+.data-display-timer,
+.data-display-turns,
+.data-display-torch-side,
+.data-display-final-state {
+  color: gold;
   font-size: 32px;
+  margin-bottom: 16px;
+}
+
+.data-display-final-state--no {
+  color: red;
+}
+
+.data-display-final-state--yes {
+  color: green;
 }
