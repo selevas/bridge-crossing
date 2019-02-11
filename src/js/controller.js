@@ -58,13 +58,27 @@ window.appController = function() {
   };
 
   /**
-   * Updates the state for a single view.
+   * Sends the state to a single view.
    *
    * @param {Object} view - The view to be updated.
    *
    * @return void
    */
-  this.getUpdate = view => view.update( model.getState() );
+  this.sendUpdate = view => view.update( model.getState() );
+
+  /**
+   * Returns the state of the model.
+   *
+   * @return {Object} - The current state of the model.
+   */
+  this.getUpdate = () => model.getState();
+
+  /**
+   * Requests the bridge width from the model.
+   *
+   * @return {number} - The default bridge width.
+   */
+  this.getBridgeWidth = () => model.getDefaultBridgeWidth();
 
   /**
    * Tells the model to reset.
@@ -78,21 +92,43 @@ window.appController = function() {
    *
    * @return void
    */
-  this.addPerson = (name, crossTime) => broadcast( model.addPerson(name, crossTime) );
+  this.addPerson = (name, crossTime) => {
+    model.addPerson(name, crossTime);
+    broadcast( model.init() );
+  }
 
   /**
    * Tells the model to remove a person from its starting set.
    *
    * @return void
    */
-  this.removePerson = id => broadcast( model.removePerson(id) );
+  this.removePerson = id => {
+    model.removePerson(id);
+    broadcast( model.init() );
+  }
+
+  /**
+   * Moves the specified person to the specified side.
+   *
+   * @param {number} personId - The ID of the person to move, based on his index in the model's current array.
+   * @param {string} side - The side to move the person to. Accepts 'start' or 'end'.
+   *
+   * @return void
+   */
+  this.movePerson = (personId, side) => {
+    model.setPersonSide( personId, side );
+    broadcast( model.getState() );
+  };
 
   /**
    * Tells the model to set a new default bridge width.
    *
    * @return void
    */
-  this.setBridgeWidth = bridgeWidth => broadcast( model.setBridgeWidth( bridgeWidth ) );
+  this.setBridgeWidth = bridgeWidth => {
+    model.setBridgeWidth( bridgeWidth );
+    broadcast( model.init() );
+  }
 
   /**
    * Tells the model to step forward one turn.
@@ -100,11 +136,6 @@ window.appController = function() {
    * @return void
    */
   this.stepForward = () => broadcast( model.stepForward() );
-
-  this.movePerson = (personId, side) => {
-    model.setPersonSide( personId, side );
-    broadcast( model.getState() );
-  };
 
   /**
    * Initializes the controller.

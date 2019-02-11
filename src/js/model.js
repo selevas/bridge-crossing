@@ -104,7 +104,10 @@ window.appModel = function() {
    *
    * @return {number} - The total number of people in the default set.
    */
-  this.addPerson = (name, crossTime) => defaults.people.push({ name: name, crossTime: crossTime });
+  this.addPerson = (name, crossTime) => {
+    defaults.people.push({ name: name, crossTime: crossTime });
+    defaults.people.sort( (personA, personB) => personA.crossTime - personB.crossTime );
+  };
 
   /**
    * Removes a person from the default set.
@@ -379,7 +382,17 @@ window.appModel = function() {
 
   };
 
-  this.isFinalState = () => this.getPeopleAtEnd().length === people.length;
+  /**
+   * Determines whether the model has reached its final state or not.
+   *
+   * Usually ends when everybody is at the End side. However, it can also
+   * determine final state if it is unable to get everybody to the End side.
+   * For example, if the bridge width is less than 2, and there is more than one
+   * person needing to cross.
+   *
+   * @return {boolean} - Whether the model has reached its final state.
+   */
+  this.isFinalState = () => this.getPeopleAtEnd().length === people.length || (bridgeWidth < 2 && this.getPeopleAtStart().length > 1);
 
 
 

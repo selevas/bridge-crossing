@@ -302,6 +302,8 @@ window.appView = function() {
       el.torchSide.textContent = (state.torchSide === 'start' ? 'Start' : 'End');
 
       el.turns.textContent = state.turnsElapsed;
+
+
     }
   };
 
@@ -786,7 +788,6 @@ window.appView = function() {
 
     finalState = state.finalState;
 
-
     if ( state.timePassed === 0 ) {
       timePassed = 0;
       timer = 0;
@@ -893,6 +894,11 @@ window.appView = function() {
       el.startButton = this.createTextElement('button', 'Start');
       el.pauseButton = this.createTextElement('button', 'Pause');
       el.resumeButton = this.createTextElement('button', 'Resume');
+      el.addPersonName = document.createElement('input');
+      el.addPersonCrossTime = document.createElement('input');
+      el.addPerson = this.createTextElement('button', 'Add Person');
+      el.bridgeWidthLabel = this.createTextElement('div', 'Bridge Width');
+      el.bridgeWidth = document.createElement('input');
       el.dataDisplay = document.createElement('div');
       el.timerLabel = this.createTextElement('div', 'Minutes Passed');
       el.timer = this.createTextElement('div', '0');
@@ -913,6 +919,11 @@ window.appView = function() {
       el.resetButton.classList.add('settings-button', 'settings-button-reset');
       el.startButton.classList.add('settings-button', 'settings-button-start');
       el.pauseButton.classList.add('settings-button', 'settings-button-pause');
+      el.addPersonName.classList.add('settings-field', 'settings-field-add-person-name');
+      el.addPersonCrossTime.classList.add('settings-field', 'settings-field-add-person-cross-time');
+      el.addPerson.classList.add('settings-button', 'settings-button-add-person');
+      el.bridgeWidthLabel.classList.add('settings-label', 'settings-label-bridge-width');
+      el.bridgeWidth.classList.add('settings-field', 'settings-bridge-width');
       el.dataDisplay.classList.add('data-display');
       el.timerLabel.classList.add('data-display-timer-label');
       el.timer.classList.add('data-display-timer');
@@ -928,6 +939,13 @@ window.appView = function() {
       el.resetButton.setAttribute('id', 'reset');
       el.startButton.setAttribute('id', 'start');
       el.pauseButton.setAttribute('id', 'pause');
+
+      // Assignment of other attributes
+
+      el.addPersonName.setAttribute('type', 'text');
+      el.addPersonName.setAttribute('placeholder', 'Name');
+      el.addPersonCrossTime.setAttribute('type', 'text');
+      el.addPersonCrossTime.setAttribute('placeholder', 'Cross Time');
 
       // Assignment of inline styles
 
@@ -950,6 +968,11 @@ window.appView = function() {
       el.settings.appendChild( el.resetButton );
       el.settings.appendChild( el.startButton );
       el.settings.appendChild( el.pauseButton );
+      el.settings.appendChild( el.addPersonName );
+      el.settings.appendChild( el.addPersonCrossTime );
+      el.settings.appendChild( el.addPerson );
+      el.settings.appendChild( el.bridgeWidthLabel );
+      el.settings.appendChild( el.bridgeWidth );
 
       el.app.appendChild( el.dataDisplay );
       el.dataDisplay.appendChild( el.timerLabel );
@@ -978,6 +1001,29 @@ window.appView = function() {
         this.pause( event );
       });
 
+      el.addPerson.addEventListener( 'click', event => {
+        event.preventDefault();
+        const name = el.addPersonName.value;
+        const crossTime = el.addPersonCrossTime.value;
+        console.log( "Name: ", name );
+        console.log( "Cross Time: ", crossTime );
+        if ( name.length <= 0 || ! /\d+/.test(crossTime) ) { console.log( "Invalid!" ); return; }
+        el.addPersonName.setAttribute('value', '');
+        el.addPersonCrossTime.setAttribute('value', '');
+        controller.addPerson(name, Number(crossTime));
+      });
+
+      el.bridgeWidth.addEventListener( 'change', event => {
+        event.preventDefault();
+        const val = event.target.value;
+        if ( /\d+/.test(val) ) {
+          controller.setBridgeWidth( Number(val) );
+        }
+        else {
+          event.target.setAttribute('value', controller.getBridgeWidth());
+        }
+      });
+
       // TODO: Make this a function, so that dimensions can be recalculated later,
       // perhaps based on a screen resize, etc.
       yStartPos = ( dimensions.startHeight / 2 ) - ( dimensions.personHeight / 2 ) ;
@@ -991,11 +1037,14 @@ window.appView = function() {
     (async () => {
       controller.init();
       await loadView;
+      // initialize the bridge width setting field
+      el.bridgeWidth.setAttribute('value', controller.getBridgeWidth());
       // subscribing to the controller lets the view receive model updates
       controller.subscribe( this );
       // we also want to subscribe our dataDisplay object so that it receives
       // updates as well
       controller.subscribe( dataDisplay );
+
     })();
 
   })(); // fire this as soon as it is declared

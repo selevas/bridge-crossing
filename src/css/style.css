@@ -70,6 +70,7 @@ h1 {
 .settings {
   display: flex;
   flex-direction: column;
+  max-width: 150px;
   padding: 32px;
   position: absolute;
   right: 0;
@@ -78,6 +79,23 @@ h1 {
 
 .settings-button {
   margin: 0 0 8px 0;
+}
+
+.settings-label {
+  color: white;
+  font-size: 22px;
+}
+
+.settings-button-pause {
+  margin-bottom: 32px;
+}
+
+.settings-button-add-person {
+  margin-bottom: 32px;
+}
+
+.settings-label-bridge-width {
+  font-size: 16px;
 }
 
 
