@@ -74,6 +74,27 @@ window.appController = function() {
   this.resetModel = () => broadcast( model.init() );
 
   /**
+   * Tells the model to add a person to its starting set.
+   *
+   * @return void
+   */
+  this.addPerson = (name, crossTime) => broadcast( model.addPerson(name, crossTime) );
+
+  /**
+   * Tells the model to remove a person from its starting set.
+   *
+   * @return void
+   */
+  this.removePerson = id => broadcast( model.removePerson(id) );
+
+  /**
+   * Tells the model to set a new default bridge width.
+   *
+   * @return void
+   */
+  this.setBridgeWidth = bridgeWidth => broadcast( model.setBridgeWidth( bridgeWidth ) );
+
+  /**
    * Tells the model to step forward one turn.
    *
    * @return void

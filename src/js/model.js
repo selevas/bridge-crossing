@@ -93,7 +93,39 @@ window.appModel = function() {
   let turnsElapsed;
 
 
-  // Accessors
+  // Default settings manipulation
+
+
+  /**
+   * Adds a person to the default set.
+   *
+   * @param {string} name - The name of the person.
+   * @param {number} crossTime - The time it takes for the person to cross the bridge.
+   *
+   * @return {number} - The total number of people in the default set.
+   */
+  this.addPerson = (name, crossTime) => defaults.people.push({ name: name, crossTime: crossTime });
+
+  /**
+   * Removes a person from the default set.
+   *
+   * @param {number} id - The ID of the person (that is, their index in the default.people array).
+   *
+   * @return {number} - The ID (index) of the person removed.
+   */
+  this.removePerson = id => {
+    defaults.people.splice(id, 1);
+    return id;
+  };
+
+  /**
+   * Sets a new default bridge width.
+   *
+   * @param {number} bridgeWidth - The new bridge width.
+   *
+   * @return {number} - The new bridge width.
+   */
+  this.setBridgeWidth = bridgeWidth => defaults.bridgeWidth = bridgeWidth;
 
 
   /**
