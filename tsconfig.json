@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "module": "preserve",
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "outFile": "src/built/js/tsc.js",
+    "sourceMap": true
+  },
+  "include": ["src/ts/*.ts"]
+}
