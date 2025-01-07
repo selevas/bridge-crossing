@@ -22,4 +22,7 @@
     "url": "https://github.com/selevas/bridge-crossing/issues"
   },
   "homepage": "https://github.com/selevas/bridge-crossing#readme",
+  "devDependencies": {
+    "tsc": "^2.0.4"
+  }
 }
