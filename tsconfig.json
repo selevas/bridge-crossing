@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "module": "preserve",
+    "module": "system",
     "removeComments": true,
     "preserveConstEnums": true,
     "outFile": "src/built/js/tsc.js",
