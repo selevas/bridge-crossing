@@ -8,6 +8,19 @@ export type TimeInMinutes = number; // Time, in minutes.
 export type IntervalID = number | null; // This is a number that represents a specific Interval object.
 export type TimeoutID = number | null; // This is a number that represents a specific Timeout object.
 
+export interface AppModel {
+  subscribe(view: View): void;
+  addPerson(name: string, crossTime: TimeInMinutes): void;
+  init(): ModelState;
+  getDefaultBridgeWidth(): number;
+  getState(): ModelState;
+  removePerson(id: number): void;
+  setBridgeWidth(width: number): number;
+  setPersonSide(person: string | number, side: Side): void;
+  stepForward(): ModelState;
+  (): void; // Marking the interface as callable, since it's actually a function
+}
+
 export interface ModelState {
   finalState: boolean,
   peopleAtStart: Person[],
@@ -38,7 +51,7 @@ export interface View {
 
 declare global {
   interface Window {
-    appModel: () => void;
+    appModel: AppModel;
     appController: () => void;
     appView: () => void;
   }
