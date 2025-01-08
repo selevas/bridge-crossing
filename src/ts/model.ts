@@ -110,9 +110,11 @@ window.appModel = function() {
    *
    * @return {number} - The total number of people in the default set.
    */
-  this.addPerson = (name: string, crossTime: TimeInMinutes): void => {
-    defaults.people.push({ id: generatePersonId(), name: name, crossTime: crossTime });
+  this.addPerson = (name: string, crossTime: TimeInMinutes): number => {
+    const newPerson = { id: generatePersonId(), name: name, crossTime: crossTime };
+    defaults.people.push(newPerson);
     defaults.people.sort( (personA, personB) => personA.crossTime - personB.crossTime );
+    return newPerson.id;
   };
 
   const generatePersonId = (): number => {
