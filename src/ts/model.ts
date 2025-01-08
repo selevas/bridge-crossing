@@ -117,6 +117,18 @@ window.appModel = function() {
     return newPerson.id;
   };
 
+  /**
+   * Generates a new unique ID for a Person.
+   *
+   * The algorithm is nothing complicated. The first time it's called, it looks for
+   * the highest ID of all the people in the set, stores it in the function object,
+   * and increments it by one each time it gets called.
+   *
+   * This is fine since there is no reason to need to obscure the IDs for each
+   * Person, and there is no potential for asynchronous conflicts.
+   *
+   * @return {number} - The new Person ID.
+   */
   const generatePersonId = (): number => {
     this.nextId = this.nextId ?? Math.max(-1, ...people.map(p => p.id)) + 1;
     this.nextId++;
