@@ -1,8 +1,16 @@
-window.appController = function() {
+import type {
+  Side,
+  TimeInMinutes,
+  AppModel,
+  ModelState,
+  View,
+} from "./types";
 
-  const model = window.appModel;
+window.appController = function(): void {
 
-  const subscribedViews = [];
+  const model: AppModel = window.appModel;
+
+  const subscribedViews: View[] = [];
 
   /**
    * Adds a view to the subscription list.
@@ -18,7 +26,7 @@ window.appController = function() {
    *
    * @return void
    */
-  this.subscribe = view => {
+  this.subscribe = (view: View): void => {
     subscribedViews.push(view);
     view.update( model.getState() );
   };
@@ -32,8 +40,9 @@ window.appController = function() {
    *
    * @return void
    */
-  this.unsubscribe = view => {
-    let index = null;
+  this.unsubscribe = (view: View): void => {
+    // TODO: Double check this function... it doesn't seem right.
+    let index: number;
     subscribedViews.find( (v, i) => { index = i; return v === view; } );
     subscribedViews.splice( index, 1 );
   };
@@ -53,7 +62,8 @@ window.appController = function() {
    *
    * @return void
    */
-  const broadcast = data => {
+  const broadcast = (data: ModelState): void => {
+    // TODO: Change the stringify/parse into spread operator.
     subscribedViews.forEach( view => view.update( JSON.parse(JSON.stringify(data)) ) );
   };
 
@@ -64,35 +74,35 @@ window.appController = function() {
    *
    * @return void
    */
-  this.sendUpdate = view => view.update( model.getState() );
+  this.sendUpdate = (view: View): void => view.update( model.getState() );
 
   /**
    * Returns the state of the model.
    *
    * @return {Object} - The current state of the model.
    */
-  this.getUpdate = () => model.getState();
+  this.getUpdate = (): ModelState => model.getState();
 
   /**
    * Requests the bridge width from the model.
    *
    * @return {number} - The default bridge width.
    */
-  this.getBridgeWidth = () => model.getDefaultBridgeWidth();
+  this.getBridgeWidth = (): number => model.getDefaultBridgeWidth();
 
   /**
    * Tells the model to reset.
    *
    * @return void
    */
-  this.resetModel = () => broadcast( model.init() );
+  this.resetModel = (): void => broadcast( model.init() );
 
   /**
    * Tells the model to add a person to its starting set.
    *
    * @return void
    */
-  this.addPerson = (name, crossTime) => {
+  this.addPerson = (name: string, crossTime: TimeInMinutes): void => {
     model.addPerson(name, crossTime);
     broadcast( model.init() );
   }
@@ -102,7 +112,7 @@ window.appController = function() {
    *
    * @return void
    */
-  this.removePerson = id => {
+  this.removePerson = (id: number): void => {
     model.removePerson(id);
     broadcast( model.init() );
   }
@@ -115,7 +125,7 @@ window.appController = function() {
    *
    * @return void
    */
-  this.movePerson = (personId, side) => {
+  this.movePerson = (personId: number, side: Side): void => {
     model.setPersonSide( personId, side );
     broadcast( model.getState() );
   };
@@ -125,7 +135,7 @@ window.appController = function() {
    *
    * @return void
    */
-  this.setBridgeWidth = bridgeWidth => {
+  this.setBridgeWidth = (bridgeWidth: number): void => {
     model.setBridgeWidth( bridgeWidth );
     broadcast( model.init() );
   }
@@ -135,7 +145,7 @@ window.appController = function() {
    *
    * @return void
    */
-  this.stepForward = () => broadcast( model.stepForward() );
+  this.stepForward = (): void => broadcast( model.stepForward() );
 
   /**
    * Initializes the controller.
@@ -144,7 +154,7 @@ window.appController = function() {
    *
    * @return void
    */
-  this.init = () => {
+  this.init = (): void => {
     broadcast( model.init() );
   };
 
