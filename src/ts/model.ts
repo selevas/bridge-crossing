@@ -1,6 +1,7 @@
 import {
   Side,
   TimeInMinutes,
+  ModelState,
   Person,
 } from "./types.js";
 
@@ -140,15 +141,6 @@ window.appModel = function() {
    * @return {number} - The new bridge width.
    */
   this.setBridgeWidth = (bridgeWidth: number): number => defaults.bridgeWidth = bridgeWidth;
-
-  interface ModelState {
-    finalState: boolean,
-    peopleAtStart: Person[],
-    peopleAtEnd: Person[],
-    timePassed: TimeInMinutes,
-    turnsElapsed: number,
-    torchSide: Side,
-  }
 
   /**
    * Returns the state of the model.

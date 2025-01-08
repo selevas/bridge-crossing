@@ -8,6 +8,15 @@ export type TimeInMinutes = number; // Time, in minutes.
 export type IntervalID = number | null; // This is a number that represents a specific Interval object.
 export type TimeoutID = number | null; // This is a number that represents a specific Timeout object.
 
+export interface ModelState {
+  finalState: boolean,
+  peopleAtStart: Person[],
+  peopleAtEnd: Person[],
+  timePassed: TimeInMinutes,
+  turnsElapsed: number,
+  torchSide: Side,
+}
+
 export interface PersonAppearance {
   color: Color; // The color of the person. Only used if people are dots.
   skinColor: Color; // The color of the person's skin.
