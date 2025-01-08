@@ -1,6 +1,12 @@
+import {
+  Side,
+  TimeInMinutes,
+  Person,
+} from "./types.js";
+
 window.appModel = function() {
 
-  let controller;
+  let controller: () => void;
 
   // Validation Functions
 
@@ -14,24 +20,25 @@ window.appModel = function() {
    * @property {string} [side] - Where the person is currently located. Accepts 'start' or 'end'. Default 'start'.
    */
 
-  /**
-   * Default values and behaviors for the model.
-   *
-   * @typedef {Object} Defaults
-   * @property {number} bridgeWidth - The number of people who can cross simultaneously.
-   * @property {Person[]} people - The default set of people.
-   * @property {string} torchSide - The default starting side for the torch.
-   */
-  const defaults = {
+  interface Defaults {
+    bridgeWidth: number; // The number of people who can cross simultaneously.
+    people: Person[]; // The default set of people.
+    torchSide: Side; // The default starting side for the torch.
+  }
+
+  type DefaultsKey = keyof Defaults;
+  type DefaultsValue = Defaults[keyof Defaults];
+
+  const defaults: Defaults = {
 
     bridgeWidth: 2,
 
     // people data
     people: [
-      { name: 'Louise', crossTime: 1, },
-      { name: 'Mark', crossTime: 2, },
-      { name: 'Anne', crossTime: 5, },
-      { name: 'John', crossTime: 8, },
+      { id: 0, name: 'Louise', crossTime: 1, },
+      { id: 1, name: 'Mark', crossTime: 2, },
+      { id: 2, name: 'Anne', crossTime: 5, },
+      { id: 3, name: 'John', crossTime: 8, },
     ],
 
     torchSide: 'start',
@@ -48,7 +55,7 @@ window.appModel = function() {
    *
    * @return {*} - Specified defaults value.
    */
-  this.getDefaults = (property = null) => {
+  this.getDefaults = (property: DefaultsKey | null = null): DefaultsValue | Defaults => {
     switch ( property ) {
       case null:
         return JSON.parse(JSON.stringify(defaults));
@@ -58,39 +65,37 @@ window.appModel = function() {
         return JSON.parse(JSON.stringify(defaults.people));
       case 'torchSide':
         return defaults.torchSide;
-      default:
-        throw 'unknown_default_property';
     }
   }
 
-  this.getDefaultBridgeWidth = () => this.getDefaults('bridgeWidth');
-  this.getDefaultPeople = () => this.getDefaults('people');
-  this.getDefaultTorchSide = () => this.getDefaults('torchSide');
+  this.getDefaultBridgeWidth = (): number => this.getDefaults('bridgeWidth');
+  this.getDefaultPeople = (): Person[] => this.getDefaults('people');
+  this.getDefaultTorchSide = (): Side => this.getDefaults('torchSide');
 
   /**
    * @see {Defaults}
    */
-  let bridgeWidth;
+  let bridgeWidth: number;
 
   /**
    * @see {Defaults}
    */
-  const people = [];
+  const people: Person[] = [];
 
   /**
    * @see {Defaults}
    */
-  let torchSide;
+  let torchSide: Side;
 
   /**
    * @see {State}
    */
-  let timePassed;
+  let timePassed: TimeInMinutes;
 
   /**
    * @see {State}
    */
-  let turnsElapsed;
+  let turnsElapsed: number;
 
 
   // Default settings manipulation
@@ -104,9 +109,15 @@ window.appModel = function() {
    *
    * @return {number} - The total number of people in the default set.
    */
-  this.addPerson = (name, crossTime) => {
-    defaults.people.push({ name: name, crossTime: crossTime });
+  this.addPerson = (name: string, crossTime: TimeInMinutes): void => {
+    defaults.people.push({ id: generatePersonId(), name: name, crossTime: crossTime });
     defaults.people.sort( (personA, personB) => personA.crossTime - personB.crossTime );
+  };
+
+  const generatePersonId = (): number => {
+    this.nextId = this.nextId ?? Math.max(-1, ...people.map(p => p.id)) + 1;
+    this.nextId++;
+    return this.nextId - 1; // We increment it, then return what it was before.
   };
 
   /**
@@ -116,7 +127,7 @@ window.appModel = function() {
    *
    * @return {number} - The ID (index) of the person removed.
    */
-  this.removePerson = id => {
+  this.removePerson = (id: number): number => {
     defaults.people.splice(id, 1);
     return id;
   };
@@ -128,26 +139,23 @@ window.appModel = function() {
    *
    * @return {number} - The new bridge width.
    */
-  this.setBridgeWidth = bridgeWidth => defaults.bridgeWidth = bridgeWidth;
+  this.setBridgeWidth = (bridgeWidth: number): number => defaults.bridgeWidth = bridgeWidth;
 
-
-  /**
-   * The state of the model.
-   *
-   * @typedef {Object} State
-   * @property {boolean} finalState - Whether the final state of the model has been reached.
-   * @property {Person[]} peopleAtStart - The people at the start.
-   * @property {Person[]} peopleAtEnd - The people at the end.
-   * @property {number} timePassed - The amount of time that has passed (in minutes).
-   * @property {number} turnsElapsed - The number of turns that have elapsed.
-   */
+  interface ModelState {
+    finalState: boolean,
+    peopleAtStart: Person[],
+    peopleAtEnd: Person[],
+    timePassed: TimeInMinutes,
+    turnsElapsed: number,
+    torchSide: Side,
+  }
 
   /**
    * Returns the state of the model.
    *
    * @return {State} - The state of the model.
    */
-  this.getState = () => {
+  this.getState = (): ModelState => {
     return {
       finalState: this.isFinalState(),
       peopleAtStart: this.getPeopleAtStart(),
@@ -158,55 +166,65 @@ window.appModel = function() {
     };
   };
 
-  this.getNumberOfPeople = () => people.length;
+  this.getNumberOfPeople = (): number => people.length;
 
-  this.getOtherSide = side => {
-    this.checkSide( side );
+  this.getOtherSide = (side: Side): Side => {
     if ( side === 'start' ) return 'end';
     return 'start';
   };
 
-  this.getPeople = () => {
+  this.getPeople = (): Person[] => {
+    // TODO: Change the stringify/parse to an Object.assign() or
+    // spread operator for performance.
     return JSON.parse(JSON.stringify(people));
   };
 
-  this.getPeopleAtStart = () => {
-    return people.filter( person => person.side === 'start' );
+  this.getPeopleAtStart = (): Person[] => {
+    return this.getPeopleAtSide('start');
   };
 
-  this.getPeopleAtEnd = () => {
-    return people.filter( person => person.side === 'end' );
+  this.getPeopleAtEnd = (): Person[] => {
+    return this.getPeopleAtSide('end');
   };
 
-  this.getPeopleAtSide = side => {
-    this.checkSide( side );
-    return people.filter( person => person.side === side );
+  this.getPeopleAtSide = (side: Side): Person[] => {
+    return people.filter( (person: Person) => person.side === side );
   };
 
-  this.getPersonIdFromName = name => {
-    let index = 0;
-    const person = people.find( (p, i) => { index = i; return p.name === name } );
-    if ( person == undefined ) throw 'person_not_found';
-    if ( person.id == null ) return index;
+  this.getPersonIdFromName = (name: string): number => {
+    let index: number = 0;
+    const person: Person | null = people.find( (p: Person, i: number): boolean => { index = i; return p.name === name } );
+    if ( person == null ) throw `person_not_found: ${name}`;
     return person.id;
   };
 
-  this.getPersonSide = person => {
-    const type = typeof person;
-    if ( type === 'number' ) return people[person].side;
-    if ( type === 'string' ) return people.find( p => p.name === person ).side;
-    throw 'person_not_found';
+  this.getPersonSide = (person: number | string | Person): Side => {
+    switch (typeof person) {
+      case 'number':
+        if (people[person] == undefined) {
+          throw `person_not_found: ${person}`;
+        }
+        return people[person].side;
+      case 'string':
+        const p: Person = people.find( p => p.name === person );
+        if (p == null) {
+          throw `person_not_found: ${person}`;
+        }
+        return p.side;
+      default: // Person
+        return person.side;
+    }
   };
 
-  this.getTorchSide = () => torchSide;
+  this.getTorchSide = (): Side => torchSide;
 
 
   // Setters
 
 
-  this.incrementTimePassed = (minutes) => timePassed += minutes;
+  this.incrementTimePassed = (minutes: TimeInMinutes): TimeInMinutes => timePassed += minutes;
 
-  this.incrementTurnsElapsed = (count = 1) => turnsElapsed += count;
+  this.incrementTurnsElapsed = (count: number = 1): number => turnsElapsed += count;
 
   /**
    * Sets the side of the specified person.
@@ -216,14 +234,14 @@ window.appModel = function() {
    *
    * @return void
    */
-  this.setPersonSide = (person, side) => {
-    this.checkSide( side );
-    if ( typeof person === 'string' ) person = this.getPersonIdFromName( person );
+  this.setPersonSide = (person: string | number, side: Side): void => {
+    if ( typeof person === 'string' ) {
+      person = this.getPersonIdFromName( person );
+    }
     people[person].side = side;
   };
 
-  this.setTorchSide = side => {
-    this.checkSide( side );
+  this.setTorchSide = (side: Side): void => {
     torchSide = side;
   };
 
@@ -300,26 +318,26 @@ window.appModel = function() {
    *
    * @return {State} - The state of the model when the step is complete.
    */
-  this.stepForward = () => {
+  this.stepForward = (): ModelState => {
 
     if ( this.isFinalState() ) return this.getState();
 
-    const from = this.getTorchSide();
-    const to = this.getOtherSide( from );
-    const peopleOnThisSide = this.getPeopleAtSide( from );
-    const peopleOnThatSide = this.getPeopleAtSide( to );
-    const selected = [];
+    const from: Side = this.getTorchSide();
+    const to: Side = this.getOtherSide( from );
+    const peopleOnThisSide: Person[] = this.getPeopleAtSide( from );
+    const peopleOnThatSide: Person[] = this.getPeopleAtSide( to );
+    const selected: Person[] = [];
     selected.length = 0;
  
-    peopleOnThisSide.sort( (personA, personB) => personA.crossTime - personB.crossTime );
+    peopleOnThisSide.sort( (personA: Person, personB: Person): TimeInMinutes => personA.crossTime - personB.crossTime );
 
     if ( turnsElapsed === 0 && peopleOnThatSide.length > 0 && peopleOnThisSide.length > bridgeWidth ) {
       // See the COMPLICATION section of this function's documentation
-      peopleOnThatSide.sort( (personA, personB) => personA.crossTime - personB.crossTime );
-      let timeSecuredA = 0, timeSecuredB = 0;
-      let timeElapsedA = 0, timeElapsedB = 0;
-      let personWithMinimumCrossTime = peopleOnThisSide[ peopleOnThisSide.length - 1 ];
-      for ( let i = peopleOnThisSide.length - 1; i > peopleOnThisSide.length - 1 - bridgeWidth; i-- ) {
+      peopleOnThatSide.sort( (personA: Person, personB: Person): TimeInMinutes => personA.crossTime - personB.crossTime );
+      let timeSecuredA: TimeInMinutes = 0, timeSecuredB: TimeInMinutes = 0;
+      let timeElapsedA: TimeInMinutes = 0, timeElapsedB: TimeInMinutes = 0;
+      let personWithMinimumCrossTime: Person = peopleOnThisSide[ peopleOnThisSide.length - 1 ];
+      for ( let i: number = peopleOnThisSide.length - 1; i > peopleOnThisSide.length - 1 - bridgeWidth; i-- ) {
         console.log( 'i: ', i, 'pwmct: ', personWithMinimumCrossTime );
         timeSecuredA += peopleOnThisSide[i].crossTime;
         personWithMinimumCrossTime = (peopleOnThisSide[i].crossTime < personWithMinimumCrossTime.crossTime ? peopleOnThisSide[i] : personWithMinimumCrossTime);
@@ -327,7 +345,7 @@ window.appModel = function() {
           timeSecuredB += peopleOnThisSide[i].crossTime;
         }
       }
-      for ( let i = 0; i < peopleOnThatSide.length; i++ ) {
+      for ( let i: number = 0; i < peopleOnThatSide.length; i++ ) {
         timeSecuredA += peopleOnThatSide[i].crossTime;
         timeSecuredB += peopleOnThatSide[i].crossTime;
         personWithMinimumCrossTime = (peopleOnThatSide[i].crossTime < personWithMinimumCrossTime.crossTime ? peopleOnThatSide[i] : personWithMinimumCrossTime);
@@ -345,14 +363,14 @@ window.appModel = function() {
 
       if ( timeSecuredA - timeElapsedA > timeSecuredB - timeElapsedB ) {
         // Then we send over only our slowest
-        for ( let i = Math.max( selected.length, peopleOnThisSide.length - bridgeWidth ); i < peopleOnThisSide.length; i++ ) {
+        for ( let i: number = Math.max( selected.length, peopleOnThisSide.length - bridgeWidth ); i < peopleOnThisSide.length; i++ ) {
           selected.push( peopleOnThisSide[i] );
         }
       }
       else {
         // Otherwise, we send our fastest with the slowest
         selected.push( peopleOnThisSide[0] );
-        for ( let i = Math.max( selected.length, peopleOnThisSide.length - (bridgeWidth - selected.length) ); i < peopleOnThisSide.length; i++ ) {
+        for ( let i: number = Math.max( selected.length, peopleOnThisSide.length - (bridgeWidth - selected.length) ); i < peopleOnThisSide.length; i++ ) {
           selected.push( peopleOnThisSide[i] );
         }
       }
@@ -363,13 +381,13 @@ window.appModel = function() {
       selected.push( peopleOnThisSide[0] );
 
       if ( from === 'start' && peopleOnThisSide.length > 1 ) {
-        for ( let i = Math.max( selected.length, peopleOnThisSide.length - (bridgeWidth - selected.length) ); i < peopleOnThisSide.length; i++ ) {
+        for ( let i: number = Math.max( selected.length, peopleOnThisSide.length - (bridgeWidth - selected.length) ); i < peopleOnThisSide.length; i++ ) {
           selected.push( peopleOnThisSide[ i ] );
         }
       }
     }
 
-    for ( let i = 0; i < selected.length; i++ ) {
+    for ( let i: number = 0; i < selected.length; i++ ) {
       this.setPersonSide( selected[i].id, to );
     }
 
@@ -392,7 +410,7 @@ window.appModel = function() {
    *
    * @return {boolean} - Whether the model has reached its final state.
    */
-  this.isFinalState = () => this.getPeopleAtEnd().length === people.length || (bridgeWidth < 2 && this.getPeopleAtStart().length > 1);
+  this.isFinalState = (): boolean => this.getPeopleAtEnd().length === people.length || (bridgeWidth < 2 && this.getPeopleAtStart().length > 1);
 
 
 
@@ -404,12 +422,12 @@ window.appModel = function() {
    *
    * @return void
    */
-  this.init = () => {
+  this.init = (): ModelState => {
     controller = window.appController;
 
     bridgeWidth = defaults.bridgeWidth;
     people.length = 0;
-    defaults.people.forEach( function( person, index, array ) {
+    defaults.people.forEach( function( person: Person, index: number, array: Person[] ): void {
       people.push({
         id: index,
         name: person.name,
