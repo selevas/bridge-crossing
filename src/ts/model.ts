@@ -3,7 +3,7 @@ import {
   TimeInMinutes,
   ModelState,
   Person,
-} from "./types.js";
+} from "./types";
 
 window.appModel = function() {
 
