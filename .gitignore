@@ -1,6 +1,7 @@
 node_modules/
 src/built
 src/media/
+src/ts/*.js
 
 *.pdf
 *.sublime-project
