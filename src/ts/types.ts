@@ -21,6 +21,21 @@ export interface AppModel {
   (): void; // Marking the interface as callable, since it's actually a function
 }
 
+export interface AppController {
+  subscribe(view: View): void;
+  unsubscribe(view: View): void;
+  sendUpdate(view: View): void;
+  getUpdate(): ModelState;
+  getBridgeWidth(): number;
+  resetModel(): ModelState;
+  addPerson(name: string, crossTime: TimeInMinutes): void;
+  removePerson(id: number): void;
+  movePerson(id: number, side: Side): void;
+  setBridgeWidth(bridgeWidth: number): void;
+  stepForward(): void;
+  init(): void;
+}
+
 export interface ModelState {
   finalState: boolean,
   peopleAtStart: Person[],
@@ -52,7 +67,7 @@ export interface View {
 declare global {
   interface Window {
     appModel: AppModel;
-    appController: () => void;
+    appController: AppController;
     appView: () => void;
   }
 }
