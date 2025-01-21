@@ -32,10 +32,10 @@ export interface ModelState {
 
 export interface PersonAppearance {
   color: Color; // The color of the person. Only used if people are dots.
-  skinColor: Color; // The color of the person's skin.
-  hairColor: Color; // The color of the person's hair.
-  shirtColor: Color; // The color of the person's shirt.
-  pantsColor: Color; // The color of the person's pants.
+  skinColor?: Color; // The color of the person's skin.
+  hairColor?: Color; // The color of the person's hair.
+  shirtColor?: Color; // The color of the person's shirt.
+  pantsColor?: Color; // The color of the person's pants.
 }
 
 export interface Person {
