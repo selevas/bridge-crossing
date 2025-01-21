@@ -1,27 +1,38 @@
+import type {
+  Color,
+  Side,
+  TimeInMS,
+  TimeInSeconds,
+  TimeInMinutes,
+  IntervalID,
+  TimeoutID,
+  AppController,
+  ModelState,
+  PersonAppearance,
+  Person,
+} from "./types";
+
+/**
+ * This extends the Person as defined in types.ts, which is
+ * the model's Person. This view has additional properties
+ * related to the rendering of each person.
+ */
+declare module "./types" {
+  interface Person {
+    appearance?: PersonAppearance;
+    element?: HTMLElement; // The element corresponding to the person.
+    xStartPos?: number; // The X position of the element at the start, relative to the main view.
+    xEndPos?: number; // The X position of the element at the end, relative to the main view.
+  }
+}
+
 window.appView = function() {
 
   /**
    * Alias for window.appController, so I don't have to type it out every time
    * I want to send something its way.
    */
-  const controller = window.appController;
-
-  /**
-   * A person object.
-   *
-   * @typedef {Object} Person
-   * @property {Object} appearance - The object containing appearance values. Colors are stored as 6-digit hexidecimal values.
-   * @property {string} [appearance.color] - The color of the person. Only used if people are dots.
-   * @property {string} [appearance.skinColor] - The color of the person's skin.
-   * @property {string} [appearance.hairColor] - The color of the person's hair.
-   * @property {string} [appearance.shirtColor] - The color of the person's shirt.
-   * @property {string} [appearance.pantsColor] - The color of the person's pants.
-   * @property {string} element - The element corresponding to the person.
-   * @property {string} name - The person's name.
-   * @property {string} side - The side the person is on.
-   * @property {number} xStartPos - The X position of the element at the start, relative to the main view.
-   * @property {number} xEndPos - The X position of the element at the end, relative to the main view.
-   */
+  const controller: AppController = window.appController;
 
   /**
    * The array of currently active people. It is updated to match the model every
@@ -30,7 +41,7 @@ window.appView = function() {
    * It is always kept sorted from lowest crossTime to highest crossTime, so that
    * the fastest person is always people[0].
    */
-  let people = [];
+  let people: Person[] = [];
 
   /**
    * The list of people who are set to cross on this turn.
@@ -39,7 +50,7 @@ window.appView = function() {
    * updated list of people. Any people who's sides do not match are added to
    * this array and prepped for animation.
    */
-  const peopleToCross = [];
+  const peopleToCross: Person[] = [];
 
   /**
    * The amount of time (in milliseconds) for people to approach the bridge.
@@ -47,7 +58,7 @@ window.appView = function() {
    * This is a fixed time, since it does not factor into the total Time Passed
    * value in the corner of the screen.
    */
-  const timeToBeginCrossing = 500;
+  const timeToBeginCrossing: TimeInMS = 500;
 
   /**
    * The amount of time (in milliseconds) for people to leave the bridge.
@@ -55,7 +66,7 @@ window.appView = function() {
    * This is a fixed time, since it does not factor into the total Time Passed
    * value in the corner of the screen.
    */
-  const timeToFinishCrossing = 500;
+  const timeToFinishCrossing: TimeInMS = 500;
 
   /**
    * The total time passed (in simulated minutes) according to the model.
@@ -68,7 +79,7 @@ window.appView = function() {
    *
    * For example, if the model provides timePassed as 8, this value will be 8000.
    */
-  let timePassed = 0;
+  let timePassed: TimeInMS = 0;
 
   /**
    * The amount of time the current crossing takes to complete.
@@ -79,7 +90,7 @@ window.appView = function() {
    *
    * @see timePassed
    */
-  let timeToCross = 0;
+  let timeToCross: TimeInMS = 0;
 
   /**
    * The stage of animation for the current turn.
@@ -110,7 +121,7 @@ window.appView = function() {
    * @see this.cross()
    * @see this.move()
    */
-  let stage = 0;
+  let stage: 0 | 1 | 2 | 3 = 0;
 
   /**
    * The current animation timeout object.
@@ -121,7 +132,7 @@ window.appView = function() {
    * remainder of the bridge crossing. Otherwise, at any other stage, it simply
    * gets reset to the beginning of the stage.
    */
-  let currentTimeoutObject = null;
+  let currentTimeoutObject: TimeoutID = null;
 
   /**
    * The real time (in seconds) of the application's time that has passed.
@@ -131,7 +142,7 @@ window.appView = function() {
    * passed down to a fraction of a second for a smooth, accurate reading in the
    * data display to the left of the view.
    */
-  let timer = 0;
+  let timer: TimeInSeconds = 0;
 
   /**
    * The period of the timer interval.
@@ -140,7 +151,7 @@ window.appView = function() {
    * will cause the timer to update more often. Setting it higher will cause it to
    * update less often.
    */
-  let timerInterval = 100;
+  let timerInterval: TimeInMS = 100;
 
   /**
    * The current animation timer interval object.
@@ -149,7 +160,7 @@ window.appView = function() {
    * animation. If the animation is paused while on Stage 2, it is cleared. When
    * the animation is resumed while on Stage 2, it is recreated.
    */
-  let timerIntervalObject = null;
+  let timerIntervalObject: IntervalID = null;
 
   /**
    * The percentage of the bridge that has already been crossed.
@@ -159,7 +170,7 @@ window.appView = function() {
    * determine how long to set the animation timeout to when the animation is
    * resumed.
    */
-  let pausedBridgePercentage = null;
+  let pausedBridgePercentage: number | null = null;
 
   /**
    * The Y position of the people crossing the bridge when paused.
@@ -168,7 +179,7 @@ window.appView = function() {
    * to immediately move all people who are crossing to the position they should
    * be at at the time the animation is paused.
    */
-  let pausedYBridgePosition = null;
+  let pausedYBridgePosition: number | null = null;
 
   /**
    * Whether or not the application has been started.
@@ -181,7 +192,7 @@ window.appView = function() {
    * view, but it will also trigger the progress of the animation and lead to
    * further requests for the model to progress as the animations complete.
    */
-  let isPlaying = false;
+  let isPlaying: boolean = false;
 
   /**
    * Whether the animation is paused or not.
@@ -190,7 +201,7 @@ window.appView = function() {
    * isPlaying is already true. It indicates that the model is paused, so that
    * when the Start command is given, it will resume the animation.
    */
-  let isPaused = false;
+  let isPaused: boolean = false;
 
   /**
    * Whether the animation has reached its final state or not.
@@ -199,7 +210,7 @@ window.appView = function() {
    * function will block further requests for the model to advance once it
    * reaches Stage 3.
    */
-  let finalState = false;
+  let finalState: boolean = false;
 
   /**
    * The array of X positions for people crossing the bridge.
@@ -210,7 +221,7 @@ window.appView = function() {
    * cross straight down the middle. If two people are crossing, they will walk
    * side by side at an equally distributed distance.
    */
-  const xBridgePositions = [];
+  const xBridgePositions: number[] = [];
 
   /**
    * The vertical center of the Starting element.
@@ -218,7 +229,7 @@ window.appView = function() {
    * This is used in Stage 2 when repositioning people to their standard spot
    * after crossing the bridge.
    */
-  let yStartPos;
+  let yStartPos: number;
 
   /**
    * The Y position of the top edge of the bridge.
@@ -226,7 +237,7 @@ window.appView = function() {
    * This is used in Stages 0 and 1 when sending people to the bridge, or sending
    * people across the bridge, depending on the direction they are headed.
    */
-  let yStartBridgePos;
+  let yStartBridgePos: number;
 
   /**
    * The vertical center of the Ending element.
@@ -234,7 +245,7 @@ window.appView = function() {
    * This is used in Stage 2 when repositioning people to their standard spot
    * after crossing the bridge.
    */
-  let yEndPos;
+  let yEndPos: number;
 
   /**
    * The Y position of the bottom edge of the bridge.
@@ -242,7 +253,7 @@ window.appView = function() {
    * This is used in Stages 0 and 1 when sending people to the bridge, or sending
    * people across the bridge, depending on the direction they are headed.
    */
-  let yEndBridgePos;
+  let yEndBridgePos: number;
 
   /**
    * The elements object.
@@ -252,28 +263,21 @@ window.appView = function() {
    * Most properties of el will be added during the execution of the start()
    * function, but they are listed below for reference.
    *
-   * @property {HTMLElement} app - The top-level element of the application (body).
-   * @property {HTMLElement} h1 - The title element.
-   * @property {HTMLElement} mainView - The area enclosing all buttons and interactive content.
-   * @property {HTMLElement} bridge - The element representing the bridge.
-   * @property {HTMLElement} start - The element representing the start area.
-   * @property {HTMLElement} end - The element representing the end area.
-   * @property {HTMLElement[]} people - The elements representing each person.
-   * @property {HTMLElement} settings - The wrapper for the application's various settings controls.
-   * @property {HTMLElement} resetButton - The button to reset the application.
-   * @property {HTMLElement} startButton - The button to start the application.
-   * @property {HTMLElement} pauseButton - The button to pause the application.
-   * @property {HTMLElement} dataDisplay - The wrapper for the application's various data displays.
-   * @property {HTMLElement} timerLabel - The label for the timer.
-   * @property {HTMLElement} timer - The total time passed for the current run.
-   * @property {HTMLElement} turnsLabel - The label for the turns elapsed.
-   * @property {HTMLElement} turns - The total turns elapsed for the current run.
-   * @property {HTMLElement} torchSideLabel - The label for which side the torch is on.
-   * @property {HTMLElement} torchSide - Which side the torch is on.
-   * @property {HTMLElement} finalStateLabel - The label for whether the final state of the run has been reached.
-   * @property {HTMLElement} finalState - Whether the final state of the run has been reached.
+   * The first part defines all the exceptions to the general rule of the
+   * catalog.
+   *
+   * The second part defines the general rules of the catalog, which is that
+   * any key, by default, points to a single HTMLElement.
    */
-  const el = {
+  type ElementCatalog = {
+    app: HTMLElement; // required
+    people?: HTMLElement[];
+  } & {
+    [id: string]: HTMLElement;
+  }
+
+  const el: ElementCatalog = {
+    // The top-level element of the application (body).
     app: document.getElementById('app'),
   };
 
@@ -283,7 +287,7 @@ window.appView = function() {
    * This object implements its own update() function and subscribes to the
    * controller so that it receives updates along with the main view.
    */
-  const dataDisplay = {
+  const dataDisplay: {update: (state: ModelState) => void} = {
     update: state => {
       if ( finalState ) {
         el.finalState.textContent = 'YES';
@@ -301,7 +305,7 @@ window.appView = function() {
 
       el.torchSide.textContent = (state.torchSide === 'start' ? 'Start' : 'End');
 
-      el.turns.textContent = state.turnsElapsed;
+      el.turns.textContent = String(state.turnsElapsed);
 
 
     }
@@ -315,7 +319,7 @@ window.appView = function() {
    * These are used to calculate inline styles for certain elements, for
    * potential flexibility of layout down the road in the future.
    */
-  const dimensions = {
+  const dimensions: { [id: string]: number } = {
     mainViewWidth: 300,
     bridgeWidth: 150,
     startHeight: 100,
@@ -367,7 +371,7 @@ window.appView = function() {
    *
    * @return {HTMLElement} - The newly created HTML element.
    */
-  this.createTextElement = (tagName, text = null) => {
+  this.createTextElement = (tagName: string, text: string | null = null): HTMLElement => {
     const ele = document.createElement( tagName );
     if ( text != null && text !== '' ) ele.appendChild( document.createTextNode( text ) );
     return ele;
@@ -382,14 +386,16 @@ window.appView = function() {
    * @param {number} id - The ID of the person assigned by the model.
    * @param {string} name - The name of the person.
    * @param {string} side - The side the person is currently on.
+   * @param {number} crossTime - The time the person takes to cross in minutes.
    *
    * @return {Person} - The newly created person.
    */
-  this.createPerson = (id, name, side) => {
+  this.createPerson = (id: number, name: string, side: Side, crossTime: TimeInMinutes): Person => {
     const newPerson = {
       id: id,
       name: name,
       side: side,
+      crossTime: crossTime,
       element: document.createElement('div'),
       color: `rgb(${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)}, ${Math.floor(Math.random()*255)})`,
     };
@@ -397,7 +403,7 @@ window.appView = function() {
     newPerson.element.style.backgroundColor = newPerson.color;
     newPerson.element.style.height = dimensions.personHeight + 'px';
     newPerson.element.style.width = dimensions.personWidth + 'px';
-    newPerson.element.setAttribute( 'data-id', id );
+    newPerson.element.setAttribute( 'data-id', String(id) );
     el.mainView.appendChild( newPerson.element );
     // TODO: Generate appearance
     return newPerson;
@@ -412,15 +418,23 @@ window.appView = function() {
    *
    * @return void
    */
-  this.removePerson = id => {
-    const person = people.find( person => person.id === id );
-    person.element.remove();
+  this.removePerson = (id: number): void => {
+    const person: Person | undefined = people.find( person => person.id === id );
+    if (person === undefined) {
+      console.warn(`removePerson: Person #${id} not found.`);
+      return;
+    }
+    person!.element.remove();
     people.splice(id, 1);
-    const remainingPeopleElements = document.querySelectorAll('.person');
-    remainingPeopleElements.forEach( element => {
-      const dataId = Number(element.getAttribute('data-id'));
-      const person = people.find( person => person.id === dataId );
-      element.style.backgroundColor = person.color;
+    const remainingPeopleElements: NodeList = document.querySelectorAll('.person');
+    remainingPeopleElements.forEach( (element: HTMLElement): void => {
+      const dataId: number = Number(element.getAttribute('data-id'));
+      const person: Person | null = people.find( person => person.id === dataId );
+      if (person === undefined) {
+        console.warn(`removePerson: Person #${id} not found.`);
+        return;
+      }
+      element.style.backgroundColor = person?.appearance.color ?? 'white';
     });
   }
 
@@ -434,8 +448,8 @@ window.appView = function() {
    *
    * @return {boolean} - Whether it falls inside the Start element or not.
    */
-  this.isOverStart = (x, y) => {
-    const bounds = el.start.getBoundingClientRect();
+  this.isOverStart = (x: number, y: number): boolean => {
+    const bounds: DOMRect = el.start.getBoundingClientRect();
     return ( x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height );
   }
 
@@ -449,8 +463,8 @@ window.appView = function() {
    *
    * @return {boolean} - Whether it falls inside the End element or not.
    */
-  this.isOverEnd = (x, y) => {
-    const bounds = el.end.getBoundingClientRect();
+  this.isOverEnd = (x: number, y: number): boolean => {
+    const bounds: DOMRect = el.end.getBoundingClientRect();
     return ( x >= bounds.x && x <= bounds.x + bounds.width && y >= bounds.y && y <= bounds.y + bounds.height );
   };
 
@@ -471,18 +485,18 @@ window.appView = function() {
    *
    * @return void
    */
-  this.enableDraggable = (person) => {
+  this.enableDraggable = (person: Person | null): void => {
     if ( person == null ) return;
-    let oldX = ( person.side === 'start' ? person.xStartPos : person.xEndPos );
-    let oldY = ( person.side === 'start' ? yStartPos : yEndPos );
-    let newX, newY;
-    person.element.addEventListener( 'mousedown', event => {
+    let oldX: number = ( person.side === 'start' ? person.xStartPos : person.xEndPos );
+    let oldY: number = ( person.side === 'start' ? yStartPos : yEndPos );
+    let newX: number, newY: number;
+    person.element.addEventListener( 'mousedown', (event: MouseEvent): void => {
       console.log( event );
       if ( timePassed !== 0 ) this.reset( event );
       oldX = event.clientX;
       oldY = event.clientY;
-      document.onmousemove = e => {
-        e = e || window.event;
+      document.onmousemove = (e: MouseEvent): void => {
+        e = e || (window.event as MouseEvent);
         e.preventDefault();
         newX = oldX - e.clientX;
         newY = oldY - e.clientY;
@@ -491,7 +505,7 @@ window.appView = function() {
         person.element.style.left = (person.element.offsetLeft - newX) + 'px';
         person.element.style.top = (person.element.offsetTop - newY) + 'px';
       };
-      document.onmouseup = e => {
+      document.onmouseup = (e: MouseEvent): void => {
         document.onmousemove = null;
         document.onmouseup = null;
         console.log( "Mouse up!", e );
@@ -522,12 +536,12 @@ window.appView = function() {
    *
    * @return void
    */
-  this.refreshXPositions = () => {
-    const xStartIncrement = dimensions.startWidth / ( people.length + 1 );
-    let xStartPos = ( ( dimensions.mainViewWidth - dimensions.startWidth ) / 2 ) + xStartIncrement - ( dimensions.personWidth / 2 );
-    const xEndIncrement = dimensions.endWidth / ( people.length + 1 );
-    let xEndPos = ( ( dimensions.mainViewWidth - dimensions.endWidth ) / 2 ) + xEndIncrement - ( dimensions.personWidth / 2 );
-    people.forEach( person => {
+  this.refreshXPositions = (): void => {
+    const xStartIncrement: number = dimensions.startWidth / ( people.length + 1 );
+    let xStartPos: number = ( ( dimensions.mainViewWidth - dimensions.startWidth ) / 2 ) + xStartIncrement - ( dimensions.personWidth / 2 );
+    const xEndIncrement: number = dimensions.endWidth / ( people.length + 1 );
+    let xEndPos: number = ( ( dimensions.mainViewWidth - dimensions.endWidth ) / 2 ) + xEndIncrement - ( dimensions.personWidth / 2 );
+    people.forEach( (person: Person): void => {
       person.xStartPos = xStartPos;
       person.xEndPos = xEndPos;
       xStartPos += xStartIncrement;
@@ -551,7 +565,7 @@ window.appView = function() {
    *
    * @return void
    */
-  this.cross = () => {
+  this.cross = (): void => {
     if ( isPaused ) return;
     console.log( "Timeout: ", currentTimeoutObject );
     clearTimeout( currentTimeoutObject );
@@ -559,14 +573,14 @@ window.appView = function() {
       case 0:
         console.log( "Stage 1" );
         stage = 1;
-        peopleToCross.forEach( (person, index) => this.move( person, index ) );
-        currentTimeoutObject = setTimeout( () => this.cross(), timeToBeginCrossing + 100 );
+        peopleToCross.forEach( (person: Person, index: number): void => this.move( person, index ) );
+        currentTimeoutObject = setTimeout( (): void => this.cross(), timeToBeginCrossing + 100 );
         break;
       case 1:
         console.log( "Stage 2" );
         stage = 2;
 
-        let timeToCrossRemaining, timerIntervalRemaining;
+        let timeToCrossRemaining: TimeInMS, timerIntervalRemaining: TimeInMS;
         if ( pausedBridgePercentage == null ) {
           timeToCrossRemaining = timeToCross;
         }
@@ -576,23 +590,29 @@ window.appView = function() {
 
         console.log( "timerIntervalRemaining: ", timerIntervalRemaining );
 
-        peopleToCross.forEach( (person, index) => this.move( person, index, timeToCrossRemaining ) );
+        peopleToCross.forEach( (person: Person, index: number): void => this.move( person, index, timeToCrossRemaining ) );
         timerIntervalObject = setInterval( this.incrementTimer, timerInterval );
-        currentTimeoutObject = setTimeout( () => this.cross(), timeToCrossRemaining + 100 );
+        currentTimeoutObject = setTimeout( (): void => this.cross(), timeToCrossRemaining + 100 );
         pausedYBridgePosition = null;
         pausedBridgePercentage = null;
         break;
       case 2:
         console.log( "Stage 3" );
         stage = 3;
-        peopleToCross.forEach( (person, index) => this.move( person, index ) );
-        currentTimeoutObject = setTimeout( () => this.cross(), timeToFinishCrossing + 100 );
+        peopleToCross.forEach( (person: Person, index: number): void => this.move( person, index ) );
+        currentTimeoutObject = setTimeout( (): void => this.cross(), timeToFinishCrossing + 100 );
         break;
       case 3:
         console.log( "Stage 0" );
         if ( isPlaying && ! finalState ) {
           stage = 0;
-          peopleToCross.forEach( (person, index) => (person.side === 'start' ? person.side = 'end' : person.side = 'start') );
+          peopleToCross.forEach( (person: Person, index: number): void => {
+            if (person.side === 'start') {
+              person.side = 'end';
+            } else {
+              person.side = 'start';
+            }
+          });
           controller.stepForward();
         }
         break;
@@ -619,8 +639,8 @@ window.appView = function() {
    * 
    * @return void
    */
-  this.move = (person, index, duration = null) => {
-    let yPos, xPos;
+  this.move = (person: Person, index: number, duration: TimeInMS | null = null): void => {
+    let yPos: number, xPos: number;
     switch ( stage ) {
       case 0:
         yPos = ( person.side === 'start' ? yStartPos : yEndPos );
@@ -641,7 +661,7 @@ window.appView = function() {
         if ( isPaused ) yPos = pausedYBridgePosition;
         else            yPos = person.side === 'start' ? yEndBridgePos : yStartBridgePos;
         
-        let timeToCrossRemaining;
+        let timeToCrossRemaining: TimeInMS;
         if ( duration != null ) timeToCrossRemaining = duration;
         else                    timeToCrossRemaining = timeToCross;
 
@@ -667,13 +687,13 @@ window.appView = function() {
    * It also assigns the text content of the timer element to be in the format
    * specified by the model, i.e. divided by 1000.
    */
-  this.incrementTimer = () => {
+  this.incrementTimer = (): void => {
     timer += timerInterval;
     if ( timer >= timePassed ) {
       timer = timePassed;
       clearInterval( timerIntervalObject );
     }
-    el.timer.textContent = timer / 1000;
+    el.timer.textContent = String(timer / 1000);
     console.log( "timer: ", timer );
     console.log( "timePassed: ", timePassed );
   }
@@ -689,7 +709,7 @@ window.appView = function() {
    *
    * @return void
    */
-  this.reset = event => {
+  this.reset = (event: Event): void => {
     isPlaying = false;
     isPaused = false;
     stage = 0;
@@ -713,7 +733,7 @@ window.appView = function() {
    *
    * @return void
    */
-  this.start = event => {
+  this.start = (event: Event): void => {
     if ( isPaused ) {
       isPaused = false;
       this.cross();
@@ -760,7 +780,7 @@ window.appView = function() {
    *
    * @return void
    */
-  this.pause = event => {
+  this.pause = (event: Event): void => {
     if ( ! isPlaying || isPaused ) return;
     isPaused = true;
     clearTimeout( currentTimeoutObject );
@@ -775,14 +795,14 @@ window.appView = function() {
         stage--;
         // instantly move them back to their starting positions for the stage, since that portion
         // of time isn't being tracked by the timer.
-        peopleToCross.forEach( (person, index) => this.move( person, index, 0 ) );
+        peopleToCross.forEach( (person: Person, index: number): void => this.move( person, index, 0 ) );
         break;
       case 2:
         // this is the stage where they are crossing the bridge and the timer is going
         clearInterval( timerIntervalObject );
         pausedBridgePercentage = ( timePassed - timer ) / timeToCross;
         pausedYBridgePosition = dimensions.startHeight + el.bridge.clientHeight - ( el.bridge.clientHeight * (peopleToCross[0].side === 'start' ? pausedBridgePercentage : 1 - pausedBridgePercentage) );
-        peopleToCross.forEach( (person, index) => this.move( person, index, 0 ) );
+        peopleToCross.forEach( (person: Person, index: number): void => this.move( person, index, 0 ) );
         stage--;
         break;
     }    
@@ -803,7 +823,7 @@ window.appView = function() {
    *
    * @return void
    */
-  this.update = state => {
+  this.update = (state: ModelState): void => {
 
     console.log( state );
 
@@ -817,9 +837,9 @@ window.appView = function() {
 
     // Combine state.peopleAtStart[] and state.peopleAtEnd[] to get everybody sent
     // by the model.
-    modelPeople = state.peopleAtStart.concat( state.peopleAtEnd ).sort( (a, b) => a.id - b.id );
+    const modelPeople: Person[] = state.peopleAtStart.concat( state.peopleAtEnd ).sort( (a, b) => a.id - b.id );
     people.sort( (a, b) => a.id - b.id );
-    const newPeople = [];
+    const newPeople: Person[] = [];
     peopleToCross.length = 0;
 
     let i = 0, j = 0;
@@ -832,7 +852,7 @@ window.appView = function() {
     while ( i < modelPeople.length || j < people.length ) {
       if ( j >= people.length ) {
         // model has a person view doesn't, therefore add it
-        newPeople.push( this.createPerson( modelPeople[i].id, modelPeople[i].name, modelPeople[i].side ) );
+        newPeople.push( this.createPerson( modelPeople[i].id, modelPeople[i].name, modelPeople[i].side, modelPeople[i].crossTime ) );
         i++;
       }
       else if ( i >= modelPeople.length ) {
@@ -844,7 +864,7 @@ window.appView = function() {
         // note that this is a duplicate of the first conditional: this is because it was
         // throwing an index-out-of-bounds error when testing it with an ||
         // TODO: Figure out a way to make this more efficient
-        newPeople.push( this.createPerson( modelPeople[i].id, modelPeople[i].name, modelPeople[i].side ) );
+        newPeople.push( this.createPerson( modelPeople[i].id, modelPeople[i].name, modelPeople[i].side, modelPeople[i].crossTime ) );
         i++;
       }
       else if ( modelPeople[i].id > people[j].id ) {
@@ -883,9 +903,9 @@ window.appView = function() {
     // crossing, increment the total time passed, and initiate the next crossing.
     if ( isPlaying && peopleToCross.length > 0 ) {
       xBridgePositions.length = 0;
-      let xIncrement = dimensions.bridgeWidth / ( peopleToCross.length + 1 );
-      let xPos = ( ( dimensions.mainViewWidth - dimensions.bridgeWidth ) / 2 ) + xIncrement - ( dimensions.personWidth / 2);
-      for ( let i = 0; i < peopleToCross.length; i++ ) {
+      let xIncrement: number = dimensions.bridgeWidth / ( peopleToCross.length + 1 );
+      let xPos: number = ( ( dimensions.mainViewWidth - dimensions.bridgeWidth ) / 2 ) + xIncrement - ( dimensions.personWidth / 2);
+      for ( let i: number = 0; i < peopleToCross.length; i++ ) {
         xBridgePositions.push( xPos );
         xPos += xIncrement;
       }
@@ -910,38 +930,64 @@ window.appView = function() {
    */
   (() => {
 
-    let loadView = new Promise( resolve => {
+    let loadView: Promise<void> = new Promise( (resolve: () => void) => {
 
       // Generation of HTML elements.
 
       // Note that el.people isn't added yet. We need to wait until the model
       // sends the initialized state before we know how many people to generate.
 
+      // The title element.
       el.h1 = this.createTextElement( 'h1', 'Bridge Crossing' );
+      // The area enclosing all buttons and interactive content.
       el.mainView = document.createElement('div');
+      // The element representing the bridge.
       el.bridge = document.createElement('div');
+      // The element representing the start area.
       el.start = document.createElement('div');
+      // The element representing the end area.
       el.end = document.createElement('div');
+      // The wrapper for the application's various settings controls.
       el.settings = document.createElement('div');
+      // The button to reset the application.
       el.resetButton = this.createTextElement('button', 'Reset');
+      // The button to start the application.
       el.startButton = this.createTextElement('button', 'Start');
+      // The button to pause the application.
       el.pauseButton = this.createTextElement('button', 'Pause');
+      // The button to resume the application.
       el.resumeButton = this.createTextElement('button', 'Resume');
+      // The text field for specifying the name of a new person.
       el.addPersonName = document.createElement('input');
+      // The text field for specifying how fast the new person is.
       el.addPersonCrossTime = document.createElement('input');
+      // The button to add a new person to the model.
       el.addPerson = this.createTextElement('button', 'Add Person');
+      // The text field for specifying the ID of a person to remove.
       el.removePersonId = document.createElement('input');
+      // The button to remove a person from the model.
       el.removePerson = this.createTextElement('button', 'Remove Person');
+      // The label for the bridge width.
       el.bridgeWidthLabel = this.createTextElement('div', 'Bridge Width');
+      // The element showing the widget of the bridge.
       el.bridgeWidth = document.createElement('input');
+      // The wrapper for the application's various data displays.
       el.dataDisplay = document.createElement('div');
+      // The label for the timer.
       el.timerLabel = this.createTextElement('div', 'Minutes Passed');
+      // The total time passed for the current run.
       el.timer = this.createTextElement('div', '0');
+      // The label for the turns elapsed.
       el.turnsLabel = this.createTextElement('div', 'Turns Elapsed');
+      // The total turns elapsed for the current run.
       el.turns = this.createTextElement('div', '0');
+      // The label for which side the torch is on.
       el.torchSideLabel = this.createTextElement('div', 'Torch Side');
+      // Which side the torch is on.
       el.torchSide = this.createTextElement('div', 'Start');
+      // The label for whether the final state of the run has been reached.
       el.finalStateLabel = this.createTextElement('div', 'Final State?');
+      // Whether the final state of the run has been reached.
       el.finalState = this.createTextElement('div', 'NO');
 
       // Assignment of classes
@@ -1025,49 +1071,52 @@ window.appView = function() {
 
       // Event Listeners
 
-      el.resetButton.addEventListener( 'click', event => {
+      el.resetButton.addEventListener( 'click', (event: MouseEvent): void => {
         event.preventDefault();
         this.reset( event );
       });
 
-      el.startButton.addEventListener( 'click', event => {
+      el.startButton.addEventListener( 'click', (event: MouseEvent): void => {
         event.preventDefault();
         this.start( event );
       });
 
-      el.pauseButton.addEventListener( 'click', event => {
+      el.pauseButton.addEventListener( 'click', (event: MouseEvent): void => {
         event.preventDefault();
         this.pause( event );
       });
 
-      el.addPerson.addEventListener( 'click', event => {
+      el.addPerson.addEventListener( 'click', (event: MouseEvent): void => {
         event.preventDefault();
-        const name = el.addPersonName.value;
-        const crossTime = el.addPersonCrossTime.value;
+        const name: string = (el.addPersonName as HTMLInputElement).value;
+        const crossTime: TimeInMinutes = Number((el.addPersonCrossTime as HTMLInputElement).value);
         console.log( "Name: ", name );
         console.log( "Cross Time: ", crossTime );
-        if ( name.length <= 0 || ! /\d+/.test(crossTime) ) { console.log( "Invalid!" ); return; }
-        el.addPersonName.value = '';
-        el.addPersonCrossTime.value = '';
-        controller.addPerson(name, Number(crossTime));
+        if ( name.length === 0 || Number.isNaN(crossTime) ) { console.log( "Invalid!" ); return; }
+        (el.addPersonName as HTMLInputElement).value = '';
+        (el.addPersonCrossTime as HTMLInputElement).value = '';
+        controller.addPerson(name, crossTime);
       });
 
-      el.removePerson.addEventListener( 'click', event => {
+      el.removePerson.addEventListener( 'click', (event: MouseEvent): void => {
         event.preventDefault();
-        const id = el.removePersonId.value;
-        if ( ! /\d+/.test(id) ) { console.log( "Invalid!" ); return; }
-        el.removePersonId.value = '';
+        const id: number = Number((el.removePersonId as HTMLInputElement).value);
+        if ( Number.isNaN(id) ) {
+          console.log( "Invalid!" );
+          return;
+        }
+        (el.removePersonId as HTMLInputElement).value = '';
         controller.removePerson(id);
       });
 
-      el.bridgeWidth.addEventListener( 'change', event => {
+      el.bridgeWidth.addEventListener( 'change', (event: MouseEvent): void => {
         event.preventDefault();
-        const val = event.target.value;
-        if ( /\d+/.test(val) ) {
-          controller.setBridgeWidth( Number(val) );
+        const val: number = Number((event.target as HTMLInputElement).value);
+        if ( Number.isNaN(val) === false ) {
+          controller.setBridgeWidth(val);
         }
         else {
-          event.target.value = controller.getBridgeWidth();
+          (event.target as HTMLInputElement).value = String(controller.getBridgeWidth());
         }
       });
 
@@ -1078,14 +1127,14 @@ window.appView = function() {
       yEndBridgePos = el.mainView.clientHeight - dimensions.endHeight - ( dimensions.personHeight / 2 );
       yEndPos = el.mainView.clientHeight - ( dimensions.endHeight / 2 ) - ( dimensions.personHeight / 2 );
 
-      setTimeout( () => { resolve('The view is ready!'); }, 500 );
+      setTimeout( () => { resolve(); }, 500 );
     });
 
     (async () => {
       controller.init();
       await loadView;
       // initialize the bridge width setting field
-      el.bridgeWidth.setAttribute('value', controller.getBridgeWidth());
+      el.bridgeWidth.setAttribute('value', String(controller.getBridgeWidth()));
       // subscribing to the controller lets the view receive model updates
       controller.subscribe( this );
       // we also want to subscribe our dataDisplay object so that it receives
