@@ -1,14 +1,15 @@
 import type {
   Side,
   TimeInMinutes,
-  AppModel,
   ModelState,
   View,
 } from "./types";
 
+import AppModel from 'model';
+
 window.appController = function(): void {
 
-  const model: AppModel = window.appModel;
+  const model: AppModel = new AppModel();
 
   const subscribedViews: View[] = [];
 
