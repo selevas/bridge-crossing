@@ -23,4 +23,20 @@ describe("Model", () => {
 
   });
 
+  describe("Initialization", () => {
+
+    beforeEach(() => {
+      model = new AppModel();
+    });
+
+    it("should initialize to the default values and no people by default", () => {
+      model.init();
+      expect(model.getBridgeWidth()).toBe(2);
+      expect(model.getPeopleAtStart().length).toBe(0);
+      expect(model.getPeopleAtEnd().length).toBe(0);
+      expect(model.getTorchSide()).toBe('start');
+    });
+
+  });
+
 });

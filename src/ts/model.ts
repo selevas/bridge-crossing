@@ -169,7 +169,11 @@ export default class AppModel {
     return 'start';
   };
 
-  #getPeople(): Person[] {
+  getBridgeWidth(): number {
+    return this.#bridgeWidth;
+  }
+
+  getPeople(): Person[] {
     // TODO: Change the stringify/parse to an Object.assign() or
     // spread operator for performance.
     return JSON.parse(JSON.stringify(this.#people));
@@ -420,15 +424,7 @@ export default class AppModel {
    */
   init(): ModelState {
     this.#bridgeWidth = this.#defaults.bridgeWidth;
-    this.#people.length = 0;
-    this.#defaults.people.forEach( function( person: Person, index: number, array: Person[] ): void {
-      this.#people.push({
-        id: index,
-        name: person.name,
-        crossTime: person.crossTime,
-        side: person.side == null ? 'start' : person.side,
-      });
-    });
+    this.#people = [];
     this.#torchSide = this.#defaults.torchSide;
 
     this.#timePassed = 0;
