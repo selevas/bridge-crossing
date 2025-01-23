@@ -139,16 +139,22 @@ export default class AppModel {
   };
 
   /**
-   * Removes a person from the default set.
+   * Removes a person from the model.
+   *
+   * If the person is not found, then null is returned.
    *
    * @param {number} id - The ID of the person (that is, their index in the default.people array).
    *
-   * @return {number} - The ID (index) of the person removed.
+   * @return {number | null} - The ID (index) of the person removed, or null if not found.
    */
-  removePerson(id: number): number {
+  removePerson(id: number): number | null {
     // TODO: Double check this... it seems wrong. It looks like it's using the
     // person ID as the array index, when it's a separate value.
-    this.#defaults.people.splice(id, 1);
+    const index: number = this.#people.findIndex(p => p.id === id);
+    if (index === -1) {
+      return null;
+    }
+    this.#people.splice(index, 1);
     return id;
   };
 
