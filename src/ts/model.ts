@@ -118,7 +118,6 @@ export default class AppModel {
       };
     }
     this.#people.push(newPerson);
-    this.#people.sort( (personA, personB) => personA.crossTime - personB.crossTime );
     return newPerson.id;
   };
 
