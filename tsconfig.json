@@ -1,12 +1,13 @@
 {
   "compilerOptions": {
-    "module": "system",
+    "module": "esnext",
     "removeComments": true,
-    "target": "es2020",
-    "lib": ["es2020", "dom"],
+    "target": "esnext",
+    "lib": ["esnext", "dom"],
     "preserveConstEnums": true,
     "esModuleInterop": true,
-    "outFile": "src/built/js/tsc.js",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "sourceMap": true
   },
   "include": ["src/ts/*.ts"]
