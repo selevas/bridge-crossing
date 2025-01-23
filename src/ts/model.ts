@@ -1,13 +1,15 @@
 import {
   Side,
   TimeInMinutes,
+  PersonID,
   ModelState,
+  PersonDefinition,
   Person,
 } from "./types";
 
 interface Defaults {
   bridgeWidth: number; // The number of people who can cross simultaneously.
-  people: Person[]; // The default set of people.
+  people: PersonDefinition[]; // The default set of people.
   torchSide: Side; // The default starting side for the torch.
 }
 
@@ -19,10 +21,10 @@ export default class AppModel {
   #defaults: Defaults = {
     bridgeWidth: 2,
     people: [
-      { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
-      { id: 1, name: 'Mark', crossTime: 2, side: 'start' },
-      { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
-      { id: 3, name: 'John', crossTime: 8, side: 'start' },
+      { name: 'Louise', crossTime: 1, side: 'start' },
+      { name: 'Mark', crossTime: 2, side: 'start' },
+      { name: 'Anne', crossTime: 5, side: 'start' },
+      { name: 'John', crossTime: 8, side: 'start' },
     ],
     torchSide: 'start',
   };
@@ -53,7 +55,7 @@ export default class AppModel {
   }
 
   getDefaultBridgeWidth(): number { return (this.#getDefaults('bridgeWidth') as number); }
-  getDefaultPeople(): Person[] { return (this.#getDefaults('people') as Person[]); }
+  getDefaultPeople(): PersonDefinition[] { return (this.#getDefaults('people') as PersonDefinition[]); }
   getDefaultTorchSide(): Side { return (this.#getDefaults('torchSide') as Side); }
 
   /**

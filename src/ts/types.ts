@@ -5,6 +5,7 @@ export type TimeInMS = number; // Time, in milliseconds.
 export type TimeInSeconds = number; // Time, in seconds.
 export type TimeInMinutes = number; // Time, in minutes.
 
+export type PersonID = number; // This is a number that represents a specific Person.
 export type IntervalID = number | null; // This is a number that represents a specific Interval object.
 export type TimeoutID = number | null; // This is a number that represents a specific Timeout object.
 
@@ -53,11 +54,21 @@ export interface PersonAppearance {
   pantsColor?: Color; // The color of the person's pants.
 }
 
-export interface Person {
-  id: number; // The ID of the person
+/**
+ * A PersonDefinition only includes data about the person, like
+ * their name and speed. It does not represent an _actual_ person.
+ */
+export interface PersonDefinition {
   name: string; // The person's name.
   crossTime: TimeInMinutes; // The time it takes the person to cross the bridge (in minutes).
   side?: 'start' | 'end'; // The side the person is on.
+}
+
+/**
+ * An actual Person includes an id.
+ */
+export interface Person extends PersonDefinition {
+  id: PersonID; // The ID of the person
 }
 
 export interface View {
