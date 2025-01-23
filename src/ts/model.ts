@@ -158,13 +158,13 @@ export default class AppModel {
   };
 
   /**
-   * Sets a new default bridge width.
+   * Sets a new bridge width.
    *
    * @param  bridgeWidth - The new bridge width.
    *
    * @return {number} - The new bridge width.
    */
-  setBridgeWidth(bridgeWidth: number): number { return this.#defaults.bridgeWidth = bridgeWidth; }
+  setBridgeWidth(bridgeWidth: number): number { return this.#bridgeWidth = bridgeWidth; }
 
   /**
    * Returns the state of the model.

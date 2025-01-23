@@ -39,6 +39,25 @@ describe("Model", () => {
 
   });
 
+  describe("Attributes", () => {
+
+    beforeEach(() => {
+      model = new AppModel();
+    });
+
+    describe("Bridge width", () => {
+
+      it("should set to the value specified", () => {
+        model.setBridgeWidth(3);
+        expect(model.getBridgeWidth()).toBe(3);
+        model.setBridgeWidth(5);
+        expect(model.getBridgeWidth()).toBe(5);
+      });
+
+    });
+
+  });
+
   describe("People", () => {
 
     beforeEach(() => {
