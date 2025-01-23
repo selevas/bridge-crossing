@@ -86,6 +86,17 @@ describe("Model", () => {
       expect(model.getPeopleAtStart()[0].side).toBe('start');
     });
 
+    it("should add multiple Persons and increment their IDs correctly", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' });
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'start' });
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' });
+      expect(model.getPeopleAtStart()).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+        { id: 1, name: 'Mark', crossTime: 2, side: 'start' },
+        { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
+      ]);
+    });
+
   });
 
 });
