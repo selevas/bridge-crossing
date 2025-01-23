@@ -39,4 +39,18 @@ describe("Model", () => {
 
   });
 
+  describe("People", () => {
+
+    beforeEach(() => {
+      model = new AppModel();
+      model.init();
+    });
+
+    it("should get an empty list when there are no people", () => {
+      expect(model.getPeopleAtStart().length).toBe(0);
+      expect(model.getPeopleAtEnd().length).toBe(0);
+    });
+
+  });
+
 });
