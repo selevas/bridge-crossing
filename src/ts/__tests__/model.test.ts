@@ -81,6 +81,11 @@ describe("Model", () => {
       ]);
     });
 
+    it("should automatically add a Person to the start if side is not specified", () => {
+      model.addPerson("Jim", 2);
+      expect(model.getPeopleAtStart()[0].side).toBe('start');
+    });
+
   });
 
 });
