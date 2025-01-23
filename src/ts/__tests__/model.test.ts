@@ -97,6 +97,54 @@ describe("Model", () => {
       ]);
     });
 
+    it("should remove a Person", () => {
+      const id: number = model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' });
+      expect(model.getPeopleAtStart()).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+      ]);
+      model.removePerson(id);
+      expect(model.getPeopleAtStart().length).toBe(0);
+    });
+
+    it("should remove a Person from the middle of a list", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' });
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'start' });
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' });
+      model.removePerson(model.getPeopleAtStart()[1].id);
+      expect(model.getPeopleAtStart()).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+        { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
+      ]);
+    });
+
+    it("should remove multiple Persons", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' });
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'start' });
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' });
+      model.removePerson(model.getPeopleAtStart()[1].id);
+      model.removePerson(model.getPeopleAtStart()[1].id);
+      expect(model.getPeopleAtStart()).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+      ]);
+    });
+
+    it("should set the ID to the highest ID in the set of Persons plus one", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'start' }); // ID 1
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' }); // ID 2
+      expect(model.getPeopleAtStart().map(p => p.id)).toEqual([0, 1, 2]);
+      model.removePerson(1); // remove ID 1 (Mark)
+      expect(model.getPeopleAtStart().map(p => p.id)).toEqual([0, 2]);
+      model.addPerson({ name: 'Bobby', crossTime: 4, side: 'start' }); // ID 3
+      // new Person has ID 3 since the highest is currently 2
+      expect(model.getPeopleAtStart().map(p => p.id)).toEqual([0, 2, 3]);
+      model.removePerson(3); // remove ID 3 (Bobby)
+      expect(model.getPeopleAtStart().map(p => p.id)).toEqual([0, 2]);
+      model.addPerson({ name: 'Ginny', crossTime: 3, side: 'start' }); // ID 3
+      // new Person again has ID 3 since the highest is again 2
+      expect(model.getPeopleAtStart().map(p => p.id)).toEqual([0, 2, 3]);
+    });
+
   });
 
 });
