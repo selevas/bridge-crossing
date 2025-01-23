@@ -87,18 +87,38 @@ export default class AppModel {
   // Default settings manipulation
 
 
+  // getPerson method overload signatures
+  addPerson(person: PersonDefinition): PersonID;
+  addPerson(name: string, crossTime?: TimeInMinutes, side?: Side): PersonID;
+
   /**
    * Adds a person to the default set.
    *
-   * @param {string} name - The name of the person.
-   * @param {number} crossTime - The time it takes for the person to cross the bridge.
+   * @param {string | PersonDefinition} name - The name of the person or a PersonDefinition object.
+   * @param {number} [crossTime] - The time it takes for the person to cross the bridge.
+   * @param {Side} [side] - Which side the person starts on.
    *
-   * @return {number} - The total number of people in the default set.
+   * @return {PersonID} - The ID of the newly added person.
    */
-  addPerson(name: string, crossTime: TimeInMinutes): number {
-    const newPerson = { id: this.#generatePersonId(), name: name, crossTime: crossTime };
-    this.#defaults.people.push(newPerson);
-    this.#defaults.people.sort( (personA, personB) => personA.crossTime - personB.crossTime );
+  addPerson(nameOrPerson: string | PersonDefinition, crossTime?: TimeInMinutes, side?: Side): PersonID {
+    let newPerson: Person;
+    if (typeof nameOrPerson === 'object') {
+      newPerson = {
+        id: this.#generatePersonId(),
+        name: nameOrPerson.name,
+        crossTime: nameOrPerson.crossTime,
+        side: nameOrPerson.side,
+      }
+    } else {
+      newPerson = {
+        id: this.#generatePersonId(),
+        name: nameOrPerson,
+        crossTime: crossTime!,
+        side: side ?? 'start',
+      };
+    }
+    this.#people.push(newPerson);
+    this.#people.sort( (personA, personB) => personA.crossTime - personB.crossTime );
     return newPerson.id;
   };
 

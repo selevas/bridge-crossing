@@ -51,6 +51,36 @@ describe("Model", () => {
       expect(model.getPeopleAtEnd().length).toBe(0);
     });
 
+    it("should add a Person via a PersonDefinition object", () => {
+      model.addPerson({
+        name: "Joe",
+        crossTime: 5,
+        side: 'start',
+      });
+      expect(model.getPeopleAtStart()).toEqual([
+        {
+          id: 0,
+          name: "Joe",
+          crossTime: 5,
+          side: 'start',
+        },
+      ]);
+      expect(model.getPeopleAtEnd().length).toBe(0);
+    });
+
+    it("should add a Person via individual attributes", () => {
+      model.addPerson("Jeff", 3, 'end');
+      expect(model.getPeopleAtStart().length).toBe(0);
+      expect(model.getPeopleAtEnd()).toEqual([
+        {
+          id: 0,
+          name: "Jeff",
+          crossTime: 3,
+          side: 'end',
+        },
+      ]);
+    });
+
   });
 
 });
