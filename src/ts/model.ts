@@ -54,6 +54,7 @@ export default class AppModel {
     }
   }
 
+  getAllDefaults(): Defaults { return (this.#getDefaults(null) as Defaults); }
   getDefaultBridgeWidth(): number { return (this.#getDefaults('bridgeWidth') as number); }
   getDefaultPeople(): PersonDefinition[] { return (this.#getDefaults('people') as PersonDefinition[]); }
   getDefaultTorchSide(): Side { return (this.#getDefaults('torchSide') as Side); }

@@ -21,6 +21,19 @@ describe("Model", () => {
       expect(model.getDefaultTorchSide()).toBe('start');
     });
 
+    it("should return all defaults when the method getAllDefaults() is called", () => {
+      expect(model.getAllDefaults()).toEqual({
+        bridgeWidth: 2,
+        people: [
+          { name: 'Louise', crossTime: 1, side: 'start' },
+          { name: 'Mark', crossTime: 2, side: 'start' },
+          { name: 'Anne', crossTime: 5, side: 'start' },
+          { name: 'John', crossTime: 8, side: 'start' },
+        ],
+        torchSide: 'start',
+      });
+    });
+
   });
 
   describe("Initialization", () => {
