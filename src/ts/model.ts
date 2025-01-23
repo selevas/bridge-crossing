@@ -83,11 +83,6 @@ export default class AppModel {
    */
   #turnsElapsed: number;
 
-  /**
-   * This is the next ID that will be assigned when a new Person is created.
-   */
-  #nextId: number;
-
 
   // Default settings manipulation
 
@@ -120,9 +115,7 @@ export default class AppModel {
    * @return {number} - The new Person ID.
    */
   #generatePersonId(): number {
-    this.#nextId = this.#nextId ?? Math.max(-1, ...this.#people.map(p => p.id)) + 1;
-    this.#nextId++;
-    return this.#nextId - 1; // We increment it, then return what it was before.
+    return Math.max(-1, ...this.#people.map(p => p.id)) + 1;
   };
 
   /**
