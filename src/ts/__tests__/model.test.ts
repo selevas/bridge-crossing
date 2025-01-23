@@ -160,6 +160,13 @@ describe("Model", () => {
       ]);
     });
 
+    it("should return null when removing a Person that doesn't exist", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' });
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'start' });
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' });
+      expect(model.removePerson(5)).toBeNull();
+    });
+
     it("should set the ID to the highest ID in the set of Persons plus one", () => {
       model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
       model.addPerson({ name: 'Mark', crossTime: 2, side: 'start' }); // ID 1
