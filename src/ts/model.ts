@@ -161,7 +161,7 @@ export default class AppModel {
   /**
    * Sets a new bridge width.
    *
-   * @param  bridgeWidth - The new bridge width.
+   * @param {number} bridgeWidth - The new bridge width.
    *
    * @return {number} - The new bridge width.
    */
