@@ -7,6 +7,8 @@ import {
   Person,
 } from "./types";
 
+import { ValueError } from "./classes/Errors";
+
 interface Defaults {
   bridgeWidth: number; // The number of people who can cross simultaneously.
   people: PersonDefinition[]; // The default set of people.
@@ -161,11 +163,22 @@ export default class AppModel {
   /**
    * Sets a new bridge width.
    *
+   * @throws {Error}
+   *
    * @param {number} bridgeWidth - The new bridge width.
    *
    * @return {number} - The new bridge width.
    */
-  setBridgeWidth(bridgeWidth: number): number { return this.#bridgeWidth = bridgeWidth; }
+  setBridgeWidth(bridgeWidth: number): number {
+    if (bridgeWidth < 2) {
+      throw new ValueError(
+        "BRIDGE_WIDTH_TOO_SMALL",
+        "The bridge width must be at least 2 for the model to function.",
+        {value: bridgeWidth},
+      );
+    }
+    return this.#bridgeWidth = bridgeWidth;
+  }
 
   /**
    * Returns the state of the model.

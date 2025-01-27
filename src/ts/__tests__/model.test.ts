@@ -1,5 +1,7 @@
 import AppModel from '../model';
 
+import {ValueError} from '../classes/Errors';
+
 describe("Model", () => {
 
   let model: AppModel;
@@ -65,6 +67,21 @@ describe("Model", () => {
         expect(model.getBridgeWidth()).toBe(3);
         model.setBridgeWidth(5);
         expect(model.getBridgeWidth()).toBe(5);
+      });
+
+      it("should throw an error if the bridge width is too small", () => {
+        let err;
+        try {
+          model.setBridgeWidth(-3);
+        } catch (e) {
+          err = e;
+        }
+        expect(err).toBeInstanceOf(ValueError);
+        expect(err).toEqual({
+          name: "BRIDGE_WIDTH_TOO_SMALL",
+          message: "The bridge width must be at least 2 for the model to function.",
+          data: {value: -3},
+        })
       });
 
     });
