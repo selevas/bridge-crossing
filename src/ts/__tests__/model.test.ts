@@ -213,6 +213,32 @@ describe("Model", () => {
       ]);
     });
 
+    it("should get all Persons at the start", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'end' }); // ID 1
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' }); // ID 2
+      expect(model.getPeopleAtSide("start")).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+        { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
+      ]);
+      expect(model.getPeopleAtStart()).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+        { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
+      ]);
+    });
+
+    it("should get all Persons at the end", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'end' }); // ID 1
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' }); // ID 2
+      expect(model.getPeopleAtSide("end")).toEqual([
+        { id: 1, name: 'Mark', crossTime: 2, side: 'end' },
+      ]);
+      expect(model.getPeopleAtEnd()).toEqual([
+        { id: 1, name: 'Mark', crossTime: 2, side: 'end' },
+      ]);
+    });
+
   });
 
 });
