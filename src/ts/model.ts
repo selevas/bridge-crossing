@@ -206,9 +206,7 @@ export default class AppModel {
   }
 
   getPeople(): Person[] {
-    // TODO: Change the stringify/parse to an Object.assign() or
-    // spread operator for performance.
-    return JSON.parse(JSON.stringify(this.#people));
+    return [...this.#people];
   };
 
   getPeopleAtStart(): Person[] {

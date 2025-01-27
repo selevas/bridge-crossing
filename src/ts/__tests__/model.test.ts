@@ -201,6 +201,18 @@ describe("Model", () => {
       expect(model.getPeopleAtStart().map(p => p.id)).toEqual([0, 2, 3]);
     });
 
+
+    it("should get all Persons", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'end' }); // ID 1
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' }); // ID 2
+      expect(model.getPeople()).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' }, // ID 0
+        { id: 1, name: 'Mark', crossTime: 2, side: 'end' }, // ID 1
+        { id: 2, name: 'Anne', crossTime: 5, side: 'start' }, // ID 2
+      ]);
+    });
+
   });
 
 });
