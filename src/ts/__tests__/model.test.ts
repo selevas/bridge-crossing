@@ -405,6 +405,35 @@ describe("Model", () => {
       });
     });
 
+    it("should complete very simple model #2", () => {
+      // Two people crossing in a single turn.
+      model.addPerson("Jerry", 2, 'start');
+      model.addPerson("Alfonso", 3, 'start');
+      expect(model.getState()).toEqual({
+        finalState: false,
+        peopleAtStart: [
+          { id: 0, name: 'Jerry', crossTime: 2, side: 'start' },
+          { id: 1, name: 'Alfonso', crossTime: 3, side: 'start' },
+        ],
+        peopleAtEnd: [],
+        timePassed: 0,
+        turnsElapsed: 0,
+        torchSide: 'start',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: true,
+        peopleAtStart: [],
+        peopleAtEnd: [
+          { id: 0, name: 'Jerry', crossTime: 2, side: 'end' },
+          { id: 1, name: 'Alfonso', crossTime: 3, side: 'end' },
+        ],
+        timePassed: 3,
+        turnsElapsed: 1,
+        torchSide: 'end',
+      });
+    });
+
   });
 
 });
