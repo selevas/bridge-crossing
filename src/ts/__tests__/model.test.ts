@@ -379,6 +379,17 @@ describe("Model", () => {
       model.init();
     });
 
+    it("should instantly complete if no Persons present", () => {
+      expect(model.getState()).toEqual({
+        finalState: true,
+        peopleAtStart: [],
+        peopleAtEnd: [],
+        timePassed: 0,
+        turnsElapsed: 0,
+        torchSide: 'start',
+      });
+    });
+
     it("should complete very simple model #1", () => {
       // A single person crossing in a single turn.
       model.addPerson("Jerry", 2, 'start');
