@@ -282,6 +282,30 @@ describe("Model", () => {
       expect(model.getPersonById(1).side).toBe('start');
     });
 
+    it("should not modify the actual Person if the returned Person object is changed", () => {
+      // check getPersonById()
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
+      const person = model.getPersonById(0);
+      person.name = "Gary";
+      person.crossTime = 3;
+      person.side = 'end';
+      expect(model.getPersonById(0)).not.toEqual(person);
+      expect(model.getPersonById(0).name).toBe("Louise");
+      expect(model.getPersonById(0).crossTime).toBe(1);
+      expect(model.getPersonById(0).side).toBe('start');
+
+      // check getPersonByName()
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'end' }); // ID 1
+      const person2 = model.getPersonByName("Mark");
+      person2.name = "Doug";
+      person2.crossTime = 7;
+      person2.side = 'start';
+      expect(model.getPersonById(1)).not.toEqual(person);
+      expect(model.getPersonById(1).name).toBe("Mark");
+      expect(model.getPersonById(1).crossTime).toBe(2);
+      expect(model.getPersonById(1).side).toBe('end');
+    });
+
   });
 
   describe("State", () => {

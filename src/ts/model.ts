@@ -226,11 +226,21 @@ export default class AppModel {
   };
 
   getPersonById(personId: PersonID): Person | undefined {
-    return this.#people.find( (p: Person): boolean => p.id === personId );
+    const person: Person | undefined = this.#people
+        .find( (p: Person): boolean => p.id === personId );
+    if (person === undefined) {
+      return undefined;
+    }
+    return {...person}; // a copy of the Person
   }
 
   getPersonByName(name: string): Person | undefined {
-    return this.#people.find( (p: Person): boolean => p.name === name );
+    const person: Person | undefined = this.#people
+        .find( (p: Person): boolean => p.name === name );
+    if (person === undefined) {
+      return undefined;
+    }
+    return {...person}; // a copy of the Person
   };
 
   getTorchSide(): Side { return this.#torchSide; }
