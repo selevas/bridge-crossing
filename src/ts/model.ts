@@ -252,8 +252,8 @@ export default class AppModel {
    * @return {PersonID | null}
    */
   setPersonSide(personId: PersonID, side: Side): PersonID | null {
-    const person: Person | null = this.getPersonById(personId);
-    if (person === null) {
+    const person: Person | undefined = this.#people.find((p: Person) => p.id === personId);
+    if (person === undefined) {
       return null;
     }
     person.side = side;
