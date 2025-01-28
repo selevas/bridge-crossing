@@ -436,11 +436,23 @@ export default class AppModel {
    * Usually ends when everybody is at the End side. However, it can also
    * determine final state if it is unable to get everybody to the End side.
    * For example, if the bridge width is less than 2, and there is more than one
-   * person needing to cross.
+   * person needing to cross, or if the torch starts at the end and nobody else
+   * does.
    *
    * @return {boolean} - Whether the model has reached its final state.
    */
-  isFinalState(): boolean { return this.getPeopleAtEnd().length === this.#people.length || (this.#bridgeWidth < 2 && this.getPeopleAtStart().length > 1); }
+  isFinalState(): boolean {
+    if (this.isSuccessful()) {
+      return true;
+    }
+    if (this.#bridgeWidth < 2 && this.getPeopleAtStart().length > 1) {
+      return true;
+    }
+    if (this.#torchSide === 'end' && this.getPeopleAtEnd().length === 0) {
+      return true;
+    }
+    return false;
+  }
 
   /**
    * Determines whether the model has completed successfully or not.
