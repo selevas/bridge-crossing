@@ -331,6 +331,15 @@ describe("Model", () => {
       });
     });
 
+    it("should not modify the actual state if the returned state is changed", () => {
+      const state = model.getState();
+      state.timePassed = 8;
+      state.turnsElapsed = 5;
+      expect(model.getState()).not.toEqual(state);
+      expect(model.getState().timePassed).toBe(0);
+      expect(model.getState().turnsElapsed).toBe(0);
+    });
+
   });
 
 });
