@@ -267,16 +267,18 @@ export default class AppModel {
   /**
    * Sets the side of the specified person.
    *
-   * @param {string|number} person - The person to set.
+   * @param {PersonID} personId - The ID of the person to set.
    * @param {string} side - The side to set the person to.
    *
-   * @return void
+   * @return {PersonID | null}
    */
-  setPersonSide(person: string | number, side: Side): void {
-    if ( typeof person === 'string' ) {
-      person = this.getPersonIdFromName( person );
+  setPersonSide(personId: PersonID, side: Side): PersonID | null {
+    const person: Person | null = this.getPersonById(personId);
+    if (person === null) {
+      return null;
     }
-    this.#people[person].side = side;
+    person.side = side;
+    return person.id;
   };
 
   setTorchSide(side: Side): void {

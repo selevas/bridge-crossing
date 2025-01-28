@@ -260,6 +260,15 @@ describe("Model", () => {
       expect(model.getPersonByName("George")).toBeUndefined();
     });
 
+    it("should set a Person's side correctly", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
+      model.setPersonSide(0, 'end');
+      expect(model.getPersonById(0).side).toBe('end');
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' }); // ID 2
+      model.setPersonSide(1, 'start');
+      expect(model.getPersonById(1).side).toBe('start');
+    });
+
   });
 
 });
