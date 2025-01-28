@@ -229,24 +229,6 @@ export default class AppModel {
     return this.#people.find( (p: Person): boolean => p.name === name );
   };
 
-  getPersonSide(person: number | string | Person): Side {
-    switch (typeof person) {
-      case 'number':
-        if (this.#people[person] == undefined) {
-          throw `person_not_found: ${person}`;
-        }
-        return this.#people[person].side;
-      case 'string':
-        const p: Person = this.#people.find( p => p.name === person );
-        if (p == null) {
-          throw `person_not_found: ${person}`;
-        }
-        return p.side;
-      default: // Person
-        return person.side;
-    }
-  };
-
   getTorchSide(): Side { return this.#torchSide; }
 
 
