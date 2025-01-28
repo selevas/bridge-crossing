@@ -221,7 +221,7 @@ export default class AppModel {
     return this.#people.filter( (person: Person) => person.side === side );
   };
 
-  getPersonById(personId: PersonID): Person | null {
+  getPersonById(personId: PersonID): Person | undefined {
     return this.#people.find( (p: Person): boolean => p.id === personId );
   }
 
@@ -232,7 +232,7 @@ export default class AppModel {
     return person.id;
   };
 
-  getPersonByName(name: string): Person | null {
+  getPersonByName(name: string): Person | undefined {
     return this.#people.find( (p: Person): boolean => p.name === name );
   };
 

@@ -255,6 +255,11 @@ describe("Model", () => {
       expect(model.getPersonByName("Louise")).toEqual({ id: 0, name: 'Louise', crossTime: 1, side: 'start' });
     });
 
+    it("should return null when getting a Person who doesn't exist", () => {
+      expect(model.getPersonById(5000)).toBeUndefined();
+      expect(model.getPersonByName("George")).toBeUndefined();
+    });
+
   });
 
 });
