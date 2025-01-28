@@ -353,6 +353,14 @@ describe("Model", () => {
       expect(model.getState().turnsElapsed).toBe(5);
     });
 
+    it("should set the torch side", () => {
+      expect(model.getState().torchSide).toBe('start');
+      model.setTorchSide('end');
+      expect(model.getState().torchSide).toBe('end');
+      model.setTorchSide('start');
+      expect(model.getState().torchSide).toBe('start');
+    });
+
     it("should not modify the actual state if the returned state is changed", () => {
       const state = model.getState();
       state.timePassed = 8;
