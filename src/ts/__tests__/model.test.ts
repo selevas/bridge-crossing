@@ -662,6 +662,62 @@ describe("Model", () => {
       });
     });
 
+    it("should complete when slowest Person starts at the other side", () => {
+      // In this case, it should continue normally. We can essentially
+      // ignore Calvin's presence in this execution.
+      model.addPerson("Alfred", 3, 'start');
+      model.addPerson("Borris", 7, 'start');
+      model.addPerson("Calvin", 8, 'end');
+      model.addPerson("Daniela", 2, 'start');
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 7,
+        turnsElapsed: 1,
+        torchSide: 'end',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+        ],
+        timePassed: 9,
+        turnsElapsed: 2,
+        torchSide: 'start',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: true,
+        successful: true,
+        peopleAtStart: [],
+        peopleAtEnd: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'end' },
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 12,
+        turnsElapsed: 3,
+        torchSide: 'end',
+      });
+    });
+
   });
 
 });
