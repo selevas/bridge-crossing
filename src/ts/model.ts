@@ -225,13 +225,6 @@ export default class AppModel {
     return this.#people.find( (p: Person): boolean => p.id === personId );
   }
 
-  getPersonIdFromName(name: string): number {
-    let index: number = 0;
-    const person: Person | null = this.#people.find( (p: Person, i: number): boolean => { index = i; return p.name === name } );
-    if ( person == null ) throw `person_not_found: ${name}`;
-    return person.id;
-  };
-
   getPersonByName(name: string): Person | undefined {
     return this.#people.find( (p: Person): boolean => p.name === name );
   };
