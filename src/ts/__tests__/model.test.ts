@@ -372,4 +372,39 @@ describe("Model", () => {
 
   });
 
+  describe("Execution", () => {
+
+    beforeEach(() => {
+      model = new AppModel();
+      model.init();
+    });
+
+    it("should complete very simple model #1", () => {
+      // A single person crossing in a single turn.
+      model.addPerson("Jerry", 2, 'start');
+      expect(model.getState()).toEqual({
+        finalState: false,
+        peopleAtStart: [
+          { id: 0, name: 'Jerry', crossTime: 2, side: 'start' },
+        ],
+        peopleAtEnd: [],
+        timePassed: 0,
+        turnsElapsed: 0,
+        torchSide: 'start',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: true,
+        peopleAtStart: [],
+        peopleAtEnd: [
+          { id: 0, name: 'Jerry', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 2,
+        turnsElapsed: 1,
+        torchSide: 'end',
+      });
+    });
+
+  });
+
 });
