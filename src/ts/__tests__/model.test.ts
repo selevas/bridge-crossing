@@ -718,6 +718,67 @@ describe("Model", () => {
       });
     });
 
+    it("should complete when slowest Person starts at the other side", () => {
+      // In this case, we send Borris and Calvin, the two slowest, first.
+      // This is because our fastest, Daniela, is already on the other side,
+      // and we'll want to send her back with the torch anyway.
+      // If we were to send Alfred, the second fastest, with Calvin, then
+      // we'd still have to then send back Daniela and walk Borris over
+      // with her, which is slower than sending Borris and Calvin at the
+      // same time right at the start.
+      model.addPerson("Alfred", 3, 'start');
+      model.addPerson("Borris", 7, 'start');
+      model.addPerson("Calvin", 8, 'start');
+      model.addPerson("Daniela", 2, 'end');
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 8,
+        turnsElapsed: 1,
+        torchSide: 'end',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+        ],
+        timePassed: 10,
+        turnsElapsed: 2,
+        torchSide: 'start',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: true,
+        successful: true,
+        peopleAtStart: [],
+        peopleAtEnd: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'end' },
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 13,
+        turnsElapsed: 3,
+        torchSide: 'end',
+      });
+    });
+
   });
 
 });
