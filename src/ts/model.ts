@@ -221,6 +221,10 @@ export default class AppModel {
     return this.#people.filter( (person: Person) => person.side === side );
   };
 
+  getPersonById(personId: PersonID): Person | null {
+    return this.#people.find( (p: Person): boolean => p.id === personId );
+  }
+
   getPersonIdFromName(name: string): number {
     let index: number = 0;
     const person: Person | null = this.#people.find( (p: Person, i: number): boolean => { index = i; return p.name === name } );

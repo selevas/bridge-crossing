@@ -239,6 +239,14 @@ describe("Model", () => {
       ]);
     });
 
+    it("should get a Person based on their ID", () => {
+      model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
+      model.addPerson({ name: 'Mark', crossTime: 2, side: 'end' }); // ID 1
+      model.addPerson({ name: 'Anne', crossTime: 5, side: 'start' }); // ID 2
+      expect(model.getPersonById(1)).toEqual({ id: 1, name: 'Mark', crossTime: 2, side: 'end' });
+      expect(model.getPersonById(0)).toEqual({ id: 0, name: 'Louise', crossTime: 1, side: 'start' });
+    });
+
   });
 
 });
