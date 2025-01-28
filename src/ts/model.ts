@@ -232,6 +232,10 @@ export default class AppModel {
     return person.id;
   };
 
+  getPersonByName(name: string): Person | null {
+    return this.#people.find( (p: Person): boolean => p.name === name );
+  };
+
   getPersonSide(person: number | string | Person): Side {
     switch (typeof person) {
       case 'number':
