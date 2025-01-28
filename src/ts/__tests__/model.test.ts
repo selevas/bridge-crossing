@@ -339,6 +339,16 @@ describe("Model", () => {
       expect(model.getState().timePassed).toBe(9);
     });
 
+    it("should increment the turns elapsed", () => {
+      expect(model.getState().turnsElapsed).toBe(0);
+      model.incrementTurnsElapsed();
+      expect(model.getState().turnsElapsed).toBe(1);
+      model.incrementTurnsElapsed(3);
+      expect(model.getState().turnsElapsed).toBe(4);
+      model.incrementTurnsElapsed();
+      expect(model.getState().turnsElapsed).toBe(5);
+    });
+
     it("should not modify the actual state if the returned state is changed", () => {
       const state = model.getState();
       state.timePassed = 8;
