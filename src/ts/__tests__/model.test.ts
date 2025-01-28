@@ -282,6 +282,10 @@ describe("Model", () => {
       expect(model.getPersonById(1).side).toBe('start');
     });
 
+    it("should return null when trying to set the side of a nonexistent Person", () => {
+      expect(model.setPersonSide(3000, 'end')).toBeNull();
+    });
+
     it("should not modify the actual Person if the returned Person object is changed", () => {
       // check getPersonById()
       model.addPerson({ name: 'Louise', crossTime: 1, side: 'start' }); // ID 0
