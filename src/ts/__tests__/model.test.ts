@@ -392,6 +392,22 @@ describe("Model", () => {
       });
     });
 
+    it("should instantly complete if nobody starts with torch", () => {
+      model.addPerson("Leroy", 3, 'start');
+      model.setTorchSide('end'); // torch starts at the end
+      expect(model.getState()).toEqual({
+        finalState: true,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Leroy', crossTime: 3, side: 'start' },
+        ],
+        peopleAtEnd: [],
+        timePassed: 0,
+        turnsElapsed: 0,
+        torchSide: 'end',
+      });
+    });
+
     it("should complete very simple model #1", () => {
       // A single person crossing in a single turn.
       model.addPerson("Jerry", 2, 'start');
