@@ -284,4 +284,29 @@ describe("Model", () => {
 
   });
 
+  describe("State", () => {
+
+    beforeEach(() => {
+      model = new AppModel();
+      model.init({includePeople: true});
+    });
+
+    it("should get the model state", () => {
+      expect(model.getState()).toEqual({
+        finalState: false,
+        peopleAtStart: [
+          { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+          { id: 1, name: 'Mark', crossTime: 2, side: 'start' },
+          { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
+          { id: 3, name: 'John', crossTime: 8, side: 'start' },
+        ],
+        peopleAtEnd: [],
+        timePassed: 0,
+        turnsElapsed: 0,
+        torchSide: 'start',
+      });
+    });
+
+  });
+
 });
