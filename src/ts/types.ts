@@ -39,6 +39,7 @@ export interface AppController {
 
 export interface ModelState {
   finalState: boolean,
+  successful: boolean,
   peopleAtStart: Person[],
   peopleAtEnd: Person[],
   timePassed: TimeInMinutes,

@@ -192,6 +192,7 @@ export default class AppModel {
   getState(): ModelState {
     return {
       finalState: this.isFinalState(),
+      successful: this.isSuccessful(),
       peopleAtStart: this.getPeopleAtStart(),
       peopleAtEnd: this.getPeopleAtEnd(),
       timePassed: this.#timePassed,

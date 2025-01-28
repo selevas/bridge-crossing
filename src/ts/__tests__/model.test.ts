@@ -322,6 +322,7 @@ describe("Model", () => {
     it("should get the model state", () => {
       expect(model.getState()).toEqual({
         finalState: false,
+        successful: false,
         peopleAtStart: [
           { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
           { id: 1, name: 'Mark', crossTime: 2, side: 'start' },
@@ -382,6 +383,7 @@ describe("Model", () => {
     it("should instantly complete if no Persons present", () => {
       expect(model.getState()).toEqual({
         finalState: true,
+        successful: true,
         peopleAtStart: [],
         peopleAtEnd: [],
         timePassed: 0,
@@ -395,6 +397,7 @@ describe("Model", () => {
       model.addPerson("Jerry", 2, 'start');
       expect(model.getState()).toEqual({
         finalState: false,
+        successful: false,
         peopleAtStart: [
           { id: 0, name: 'Jerry', crossTime: 2, side: 'start' },
         ],
@@ -406,6 +409,7 @@ describe("Model", () => {
       model.stepForward();
       expect(model.getState()).toEqual({
         finalState: true,
+        successful: true,
         peopleAtStart: [],
         peopleAtEnd: [
           { id: 0, name: 'Jerry', crossTime: 2, side: 'end' },
@@ -422,6 +426,7 @@ describe("Model", () => {
       model.addPerson("Alfonso", 3, 'start');
       expect(model.getState()).toEqual({
         finalState: false,
+        successful: false,
         peopleAtStart: [
           { id: 0, name: 'Jerry', crossTime: 2, side: 'start' },
           { id: 1, name: 'Alfonso', crossTime: 3, side: 'start' },
@@ -434,6 +439,7 @@ describe("Model", () => {
       model.stepForward();
       expect(model.getState()).toEqual({
         finalState: true,
+        successful: true,
         peopleAtStart: [],
         peopleAtEnd: [
           { id: 0, name: 'Jerry', crossTime: 2, side: 'end' },
@@ -454,6 +460,7 @@ describe("Model", () => {
       // Leonardo, the fastest, crosses with Alfonso, the slowest
       expect(model.getState()).toEqual({
         finalState: false,
+        successful: false,
         peopleAtStart: [
           { id: 0, name: 'Jerry', crossTime: 2, side: 'start' },
         ],
@@ -469,6 +476,7 @@ describe("Model", () => {
       // Leonardo, being the fastest, returns quickly with the torch
       expect(model.getState()).toEqual({
         finalState: false,
+        successful: false,
         peopleAtStart: [
           { id: 0, name: 'Jerry', crossTime: 2, side: 'start' },
           { id: 2, name: 'Leonardo', crossTime: 1, side: 'start' },
@@ -484,6 +492,7 @@ describe("Model", () => {
       // Leonard crosses with Jerry, completing the execution
       expect(model.getState()).toEqual({
         finalState: true,
+        successful: true,
         peopleAtStart: [],
         peopleAtEnd: [
           { id: 0, name: 'Jerry', crossTime: 2, side: 'end' },
