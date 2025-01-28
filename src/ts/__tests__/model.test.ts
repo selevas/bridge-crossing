@@ -52,6 +52,19 @@ describe("Model", () => {
       expect(model.getTorchSide()).toBe('start');
     });
 
+    it("should initialize with the default set of people when specified", () => {
+      model.init({includePeople: true});
+      expect(model.getBridgeWidth()).toBe(2);
+      expect(model.getPeopleAtStart()).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+        { id: 1, name: 'Mark', crossTime: 2, side: 'start' },
+        { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
+        { id: 3, name: 'John', crossTime: 8, side: 'start' },
+      ]);
+      expect(model.getPeopleAtEnd().length).toBe(0);
+      expect(model.getTorchSide()).toBe('start');
+    });
+
   });
 
   describe("Attributes", () => {

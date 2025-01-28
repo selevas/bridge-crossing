@@ -15,6 +15,10 @@ interface Defaults {
   torchSide: Side; // The default starting side for the torch.
 }
 
+interface InitArgs {
+  includePeople?: boolean; // If true, default people are added
+}
+
 type DefaultsKey = keyof Defaults;
 type DefaultsValue = Defaults[keyof Defaults];
 
@@ -435,11 +439,19 @@ export default class AppModel {
    * This function should be called whenever the user wishes to reset the
    * program, including at the very beginning when the program first loads.
    *
+   * @param {InitArgs} [args] - Init arguments.
+   * @prop {boolean} [args.includePeople] - If true, adds default people. Default false.
+   *
    * @return void
    */
-  init(): ModelState {
+  init(args: InitArgs = {}): ModelState {
     this.#bridgeWidth = this.#defaults.bridgeWidth;
     this.#people = [];
+    if (args.includePeople === true) {
+      for (const person of this.#defaults.people) {
+        this.addPerson(person);
+      }
+    }
     this.#torchSide = this.#defaults.torchSide;
 
     this.#timePassed = 0;
