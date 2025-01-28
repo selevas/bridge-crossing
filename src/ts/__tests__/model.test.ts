@@ -434,6 +434,57 @@ describe("Model", () => {
       });
     });
 
+    it("should complete simple model #1", () => {
+      // Three people at the starting side.
+      model.addPerson("Jerry", 2, 'start');
+      model.addPerson("Alfonso", 3, 'start');
+      model.addPerson("Leonardo", 1, 'start');
+      model.stepForward();
+      // Leonardo, the fastest, crosses with Alfonso, the slowest
+      expect(model.getState()).toEqual({
+        finalState: false,
+        peopleAtStart: [
+          { id: 0, name: 'Jerry', crossTime: 2, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Alfonso', crossTime: 3, side: 'end' },
+          { id: 2, name: 'Leonardo', crossTime: 1, side: 'end' },
+        ],
+        timePassed: 3,
+        turnsElapsed: 1,
+        torchSide: 'end',
+      });
+      model.stepForward();
+      // Leonardo, being the fastest, returns quickly with the torch
+      expect(model.getState()).toEqual({
+        finalState: false,
+        peopleAtStart: [
+          { id: 0, name: 'Jerry', crossTime: 2, side: 'start' },
+          { id: 2, name: 'Leonardo', crossTime: 1, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Alfonso', crossTime: 3, side: 'end' },
+        ],
+        timePassed: 4,
+        turnsElapsed: 2,
+        torchSide: 'start',
+      });
+      model.stepForward();
+      // Leonard crosses with Jerry, completing the execution
+      expect(model.getState()).toEqual({
+        finalState: true,
+        peopleAtStart: [],
+        peopleAtEnd: [
+          { id: 0, name: 'Jerry', crossTime: 2, side: 'end' },
+          { id: 1, name: 'Alfonso', crossTime: 3, side: 'end' },
+          { id: 2, name: 'Leonardo', crossTime: 1, side: 'end' },
+        ],
+        timePassed: 6,
+        turnsElapsed: 3,
+        torchSide: 'end',
+      });
+    });
+
   });
 
 });
