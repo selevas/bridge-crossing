@@ -521,6 +521,92 @@ describe("Model", () => {
       });
     });
 
+    it("should complete medium model #1", () => {
+      model.addPerson("Alfred", 3, 'start');
+      model.addPerson("Borris", 7, 'start');
+      model.addPerson("Calvin", 8, 'start');
+      model.addPerson("Daniela", 2, 'start');
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+          { id: 1, name: 'Borris', crossTime: 7, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 8,
+        turnsElapsed: 1,
+        torchSide: 'end',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+          { id: 1, name: 'Borris', crossTime: 7, side: 'start' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+        ],
+        timePassed: 10,
+        turnsElapsed: 2,
+        torchSide: 'start',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 17,
+        turnsElapsed: 3,
+        torchSide: 'end',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+        ],
+        timePassed: 19,
+        turnsElapsed: 4,
+        torchSide: 'start',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: true,
+        successful: true,
+        peopleAtStart: [],
+        peopleAtEnd: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'end' },
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 22,
+        turnsElapsed: 5,
+        torchSide: 'end',
+      });
+    });
+
   });
 
 });
