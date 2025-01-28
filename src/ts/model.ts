@@ -441,6 +441,27 @@ export default class AppModel {
    */
   isFinalState(): boolean { return this.getPeopleAtEnd().length === this.#people.length || (this.#bridgeWidth < 2 && this.getPeopleAtStart().length > 1); }
 
+  /**
+   * Determines whether the model has completed successfully or not.
+   *
+   * Note that this is distinct from whether the model has entered its
+   * final state or not. In some cases, the model may reach its final
+   * state without completing successfully. In such case, this method
+   * will return false, despite isFinalState() returning true.
+   *
+   * Currently, the only criteria to determine success is if there are
+   * no people at the start. This includes the scenario in which there
+   * are no people at all.
+   *
+   * @return {boolean} - Whether the model has successfully completed.
+   */
+  isSuccessful(): boolean {
+    if (this.getPeopleAtStart().length === 0) {
+      return true;
+    }
+    return false;
+  }
+
 
 
   /**
