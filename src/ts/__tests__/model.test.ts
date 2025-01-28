@@ -607,6 +607,61 @@ describe("Model", () => {
       });
     });
 
+    it("should complete medium model #1, but with bridge width 3", () => {
+      model.addPerson("Alfred", 3, 'start');
+      model.addPerson("Borris", 7, 'start');
+      model.addPerson("Calvin", 8, 'start');
+      model.addPerson("Daniela", 2, 'start');
+      model.setBridgeWidth(3);
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 8,
+        turnsElapsed: 1,
+        torchSide: 'end',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'start' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'start' },
+        ],
+        peopleAtEnd: [
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+        ],
+        timePassed: 10,
+        turnsElapsed: 2,
+        torchSide: 'start',
+      });
+      model.stepForward();
+      expect(model.getState()).toEqual({
+        finalState: true,
+        successful: true,
+        peopleAtStart: [],
+        peopleAtEnd: [
+          { id: 0, name: 'Alfred', crossTime: 3, side: 'end' },
+          { id: 1, name: 'Borris', crossTime: 7, side: 'end' },
+          { id: 2, name: 'Calvin', crossTime: 8, side: 'end' },
+          { id: 3, name: 'Daniela', crossTime: 2, side: 'end' },
+        ],
+        timePassed: 13,
+        turnsElapsed: 3,
+        torchSide: 'end',
+      });
+    });
+
   });
 
 });
