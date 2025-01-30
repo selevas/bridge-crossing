@@ -34,6 +34,28 @@ describe("Controller", () => {
       expect(views[2].update).toHaveBeenCalledWith(state);
     });
 
+    it("should no longer broadcast to unsubscribed views", () => {
+      controller = new AppController([...views]);
+      const state = {
+        finalState: true,
+        successful: true,
+        peopleAtStart: [],
+        peopleAtEnd: [],
+        timePassed: 0,
+        turnsElapsed: 0,
+        torchSide: 'start',
+      };
+      expect(views[0].update).toHaveBeenCalledWith(state);
+      expect(views[1].update).toHaveBeenCalledWith(state);
+      expect(views[2].update).toHaveBeenCalledWith(state);
+      controller.unsubscribe(views[1]);
+      controller.unsubscribe(views[0]);
+      controller.stepForward();
+      expect(views[0].update).toHaveBeenCalledTimes(1);
+      expect(views[1].update).toHaveBeenCalledTimes(1);
+      expect(views[2].update).toHaveBeenCalledTimes(2);
+    });
+
   });
 
 });
