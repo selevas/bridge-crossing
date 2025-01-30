@@ -2,6 +2,8 @@ import AppModel from '../model';
 
 import {ValueError} from '../classes/Errors';
 
+console.log = jest.fn();
+
 describe("Model", () => {
 
   let model: AppModel;
