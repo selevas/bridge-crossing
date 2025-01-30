@@ -19,8 +19,8 @@ describe("Controller", () => {
     });
 
     it("should automatically subscribe views passed to its constructor", () => {
-      controller = new AppController([views[0]]);
-      const model = {
+      controller = new AppController([views[0], views[2]]);
+      const state = {
         finalState: true,
         successful: true,
         peopleAtStart: [],
@@ -29,9 +29,9 @@ describe("Controller", () => {
         turnsElapsed: 0,
         torchSide: 'start',
       };
-      expect(views[0].update).toHaveBeenCalledWith(model);
+      expect(views[0].update).toHaveBeenCalledWith(state);
       expect(views[1].update).not.toHaveBeenCalled();
-      expect(views[2].update).not.toHaveBeenCalled();
+      expect(views[2].update).toHaveBeenCalledWith(state);
     });
 
   });
