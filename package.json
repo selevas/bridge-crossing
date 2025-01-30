@@ -5,7 +5,9 @@
   "main": "index.html",
   "scripts": {
     "test": "jest",
-    "test-no-coverage": "jest --coverage=false"
+    "test-no-coverage": "jest --coverage=false",
+    "test-model": "jest --coverage=false src/ts/__tests__/model.test.ts",
+    "test-controller": "jest --coverage=false src/ts/__tests__/controller.test.ts"
   },
   "repository": {
     "type": "git",
