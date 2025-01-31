@@ -3,6 +3,10 @@ import {
   PersonDefinition,
 } from "../types";
 
+import {
+  ValueError,
+} from "./Errors";
+
 export default class Preset {
 
   #name: string; // The name of the preset.
@@ -11,6 +15,20 @@ export default class Preset {
   #torchSide: Side; // The default starting side for the torch.
 
   constructor(name: string, bridgeWidth: number, people: PersonDefinition[], torchSide: Side) {
+    if (name === '') {
+      throw new ValueError(
+        "PRESET_EMPTY_NAME",
+        "The name of your Preset must be a non-empty string",
+        {value: name},
+      );
+    }
+    if (bridgeWidth < 2) {
+      throw new ValueError(
+        "PRESET_BRIDGE_WIDTH_TOO_SMALL",
+        "The bridge width in your Preset must be greater than 2",
+        {value: bridgeWidth},
+      );
+    }
     this.#name = name;
     this.#bridgeWidth = bridgeWidth;
     this.#people = people.map((p: PersonDefinition): PersonDefinition => ({...p}));

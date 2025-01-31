@@ -2,6 +2,10 @@ import {
   PersonDefinition,
 } from "../../types";
 
+import {
+  ValueError
+} from "../Errors";
+
 import Preset from "../Preset";
 
 describe("class Preset", () => {
@@ -20,6 +24,36 @@ describe("class Preset", () => {
       expect(preset.people).toEqual(people);
       expect(preset.people).not.toBe(people);
       expect(preset.torchSide).toBe('start');
+    });
+
+    it("cannot have an empty string as name", () => {
+      let error;
+      try {
+        new Preset('', 2, [], 'start');
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeInstanceOf(ValueError);
+      expect(error).toEqual({
+        name: "PRESET_EMPTY_NAME",
+        message: "The name of your Preset must be a non-empty string",
+        data: {value: ''},
+      });
+    });
+
+    it("cannot have a bridge width less than 2", () => {
+      let error;
+      try {
+        new Preset('small bridge', 1, [], 'start');
+      } catch (e) {
+        error = e;
+      }
+      expect(error).toBeInstanceOf(ValueError);
+      expect(error).toEqual({
+        name: "PRESET_BRIDGE_WIDTH_TOO_SMALL",
+        message: "The bridge width in your Preset must be greater than 2",
+        data: {value: 1},
+      });
     });
 
   });
