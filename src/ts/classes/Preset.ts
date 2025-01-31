@@ -10,7 +10,7 @@ export default class Preset {
   #people: PersonDefinition[]; // The default set of people.
   #torchSide: Side; // The default starting side for the torch.
 
-  constructor(name: string, bridgeWidth: number, people: PersonDefinition[] = [], torchSide: Side = 'start') {
+  constructor(name: string, bridgeWidth: number, people: PersonDefinition[], torchSide: Side) {
     this.#name = name;
     this.#bridgeWidth = bridgeWidth;
     this.#people = people.map((p: PersonDefinition): PersonDefinition => ({...p}));
@@ -33,4 +33,27 @@ export default class Preset {
     return this.#torchSide;
   }
 
+  equals(preset: Preset): boolean {
+    if (this.#bridgeWidth !== preset.bridgeWidth) {
+      return false;
+    }
+    if (this.#torchSide !== preset.torchSide) {
+      return false;
+    }
+    if (this.#people.length !== preset.people.length) {
+      return false;
+    }
+    for (const index in this.#people) {
+      if (this.#people[index].name !== preset.people[index].name) {
+        return false;
+      }
+      if (this.#people[index].crossTime !== preset.people[index].crossTime) {
+        return false;
+      }
+      if (this.#people[index].side !== preset.people[index].side) {
+        return false;
+      }
+    }
+    return true;
+  }
 }
