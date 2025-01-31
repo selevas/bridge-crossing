@@ -78,4 +78,29 @@ describe("class Preset", () => {
 
   });
 
+  describe("Generation", () => {
+
+    it("should generate a clone", () => {
+      const people: PersonDefinition[] = [
+        { name: "Jango Fett", crossTime: 66, side: "start" },
+      ];
+      const original: Preset = new Preset("original", 3, people, "start");
+      const clone: Preset = original.clone("clone");
+      expect(original.equals(clone)).toBe(true);
+      expect(clone.equals(original)).toBe(true);
+      expect(original.bridgeWidth).toBe(clone.bridgeWidth);
+      expect(original.people).toEqual(clone.people);
+      expect(original.torchSide).toBe(clone.torchSide);
+      expect(original.name).not.toBe(clone.name); // only the name is different
+      expect(clone.name).toBe("clone");
+
+      const clone2: Preset = original.clone(); // no name this time
+      expect(clone2.name).toBe("original_copy");
+
+      const clone3: Preset = clone2.clone();
+      expect(clone3.name).toBe("original_copy_copy");
+    });
+
+  });
+
 });

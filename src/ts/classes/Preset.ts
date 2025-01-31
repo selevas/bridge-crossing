@@ -56,4 +56,13 @@ export default class Preset {
     }
     return true;
   }
+
+  clone(name?: string) {
+    return new Preset(
+      name ?? `${this.#name}_copy`,
+      this.#bridgeWidth,
+      this.#people.map((p: PersonDefinition): PersonDefinition => ({...p})),
+      this.#torchSide,
+    );
+  }
 }
