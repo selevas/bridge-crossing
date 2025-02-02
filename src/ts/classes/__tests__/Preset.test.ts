@@ -265,6 +265,24 @@ describe("class Preset", () => {
       expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
     });
 
+    it("should return an ObjectError if one of the imported people is not an object", () => {
+      const data = [
+        {
+          name: "test-preset",
+          bridgeWidth: 2,
+          people: ["Dave"],
+          torchSide: "start",
+        }
+      ];
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_PERSON_INVALID");
+      expect(presetImport.failed[0][0].message).toBe("A Person in the imported Preset is not of type object.");
+      expect(presetImport.failed[0][0].data.object).toEqual("Dave");
+    });
+
   })
 
   describe("Comparison", () => {

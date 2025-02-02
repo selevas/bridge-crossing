@@ -80,6 +80,17 @@ export default class Preset {
           {object: preset},
         ));
       }
+      else {
+        for (const person of preset.people) {
+          if (typeof person !== "object") {
+            errors.push(new ObjectError(
+              "PRESET_PERSON_INVALID",
+              "A Person in the imported Preset is not of type object.",
+              {object: person},
+            ));
+          }
+        }
+      }
       if (typeof preset.torchSide === "undefined") {
         errors.push(new ObjectError(
           "PRESET_MISSING_TORCH_SIDE",
