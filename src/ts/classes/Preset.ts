@@ -103,6 +103,20 @@ export default class Preset {
               {object: person},
             ));
           }
+          if (typeof person.crossTime === "undefined") {
+            errors.push(new ObjectError(
+              "PRESET_PERSON_MISSING_CROSS_TIME",
+              "A Person in the imported Preset is missing the `crossTime` property.",
+              {object: person},
+            ));
+          }
+          else if (typeof person.crossTime !== "number") {
+            errors.push(new ObjectError(
+              "PRESET_PERSON_INVALID_CROSS_TIME",
+              "A Person in the imported Preset has an invalid `crossTime` property.",
+              {object: person},
+            ));
+          }
         }
       }
       if (typeof preset.torchSide === "undefined") {
