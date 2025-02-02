@@ -363,6 +363,26 @@ describe("class Preset", () => {
       expect(presetImport.failed[0][0].data.object).toEqual(data[0].people[0]);
     });
 
+    it("should return an ObjectError if one of the imported people has an invalid side", () => {
+      const data = [
+        {
+          name: "test-preset",
+          bridgeWidth: 2,
+          people: [
+            { name: "Sonic", crossTime: 1, side: "halfway" },
+          ],
+          torchSide: "start",
+        }
+      ];
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_PERSON_INVALID_SIDE");
+      expect(presetImport.failed[0][0].message).toBe("A Person in the imported Preset has an invalid `side` property.");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0].people[0]);
+    });
+
   })
 
   describe("Comparison", () => {
