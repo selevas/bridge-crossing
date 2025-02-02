@@ -37,6 +37,25 @@ export default class Preset {
     const failed: ObjectError[][] = [];
     const successful: Preset[] = [];
     for (const preset of presets) {
+      const errors: ObjectError[] = [];
+      if (typeof preset.name === "undefined") {
+        errors.push(new ObjectError(
+          "PRESET_MISSING_NAME",
+          "The imported Preset is missing the `name` property.",
+          {object: preset},
+        ));
+      }
+      else if (typeof preset.name !== "string") {
+        errors.push(new ObjectError(
+          "PRESET_INVALID_NAME",
+          "The `name` property of imported Preset is not of type string.",
+          {object: preset},
+        ));
+      }
+      if (errors.length > 0) {
+        failed.push(errors);
+        continue;
+      }
       try {
         successful.push(new Preset(
           preset.name,

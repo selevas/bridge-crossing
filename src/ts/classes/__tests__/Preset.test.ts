@@ -3,6 +3,7 @@ import {
 } from "../../types";
 
 import {
+  ObjectError,
   ValueError
 } from "../Errors";
 
@@ -122,6 +123,41 @@ describe("class Preset", () => {
       expect(s[2].people[6]).toEqual({ name: "R2D2", crossTime: 10, side: "start" });
       expect(s[2].people[7]).toEqual({ name: "C-3PO", crossTime: 150, side: "start" });
       expect(s[2].torchSide).toBe("end");
+    });
+
+    it("should return an ObjectError if the imported preset has no name", () => {
+      const data = [
+        {
+          bridgeWidth: importData[0].bridgeWidth,
+          people: importData[0].people,
+          torchSide: importData[0].torchSide,
+        }
+      ];
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_MISSING_NAME");
+      expect(presetImport.failed[0][0].message).toBe("The imported Preset is missing the `name` property.");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
+    });
+
+    it("should return an ObjectError if the imported preset has an invalid name", () => {
+      const data = [
+        {
+          name: 42,
+          bridgeWidth: importData[0].bridgeWidth,
+          people: importData[0].people,
+          torchSide: importData[0].torchSide,
+        }
+      ];
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_INVALID_NAME");
+      expect(presetImport.failed[0][0].message).toBe("The `name` property of imported Preset is not of type string.");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
     });
 
   })
