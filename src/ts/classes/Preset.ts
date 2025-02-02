@@ -80,6 +80,20 @@ export default class Preset {
           {object: preset},
         ));
       }
+      if (typeof preset.torchSide === "undefined") {
+        errors.push(new ObjectError(
+          "PRESET_MISSING_TORCH_SIDE",
+          "The imported Preset is missing the `torchSide` property.",
+          {object: preset},
+        ));
+      }
+      else if (false === ['start', 'end'].includes(preset.torchSide)) {
+        errors.push(new ObjectError(
+          "PRESET_INVALID_TORCH_SIDE",
+          "The `torchSide` property of imported Preset is not \"start\" or \"end\".",
+          {object: preset},
+        ));
+      }
       if (errors.length > 0) {
         failed.push(errors);
         continue;
