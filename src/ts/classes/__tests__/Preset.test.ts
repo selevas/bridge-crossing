@@ -195,6 +195,41 @@ describe("class Preset", () => {
       expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
     });
 
+    it("should return an ObjectError if the imported preset has no people property", () => {
+      const data = [
+        {
+          name: "test-preset",
+          bridgeWidth: 2,
+          torchSide: importData[0].torchSide,
+        }
+      ];
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_MISSING_PEOPLE");
+      expect(presetImport.failed[0][0].message).toBe("The imported Preset is missing the `people` property.");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
+    });
+
+    it("should return an ObjectError if the imported preset has an invalid people property", () => {
+      const data = [
+        {
+          name: "test-preset",
+          bridgeWidth: 2,
+          people: "Jim",
+          torchSide: importData[0].torchSide,
+        }
+      ];
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_INVALID_PEOPLE");
+      expect(presetImport.failed[0][0].message).toBe("The `people` property of imported Preset is not an array.");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
+    });
+
   })
 
   describe("Comparison", () => {

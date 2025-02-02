@@ -66,6 +66,20 @@ export default class Preset {
           {object: preset},
         ));
       }
+      if (typeof preset.people === "undefined") {
+        errors.push(new ObjectError(
+          "PRESET_MISSING_PEOPLE",
+          "The imported Preset is missing the `people` property.",
+          {object: preset},
+        ));
+      }
+      else if (false === Array.isArray(preset.people)) {
+        errors.push(new ObjectError(
+          "PRESET_INVALID_PEOPLE",
+          "The `people` property of imported Preset is not an array.",
+          {object: preset},
+        ));
+      }
       if (errors.length > 0) {
         failed.push(errors);
         continue;
