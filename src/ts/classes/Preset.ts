@@ -52,6 +52,20 @@ export default class Preset {
           {object: preset},
         ));
       }
+      if (typeof preset.bridgeWidth === "undefined") {
+        errors.push(new ObjectError(
+          "PRESET_MISSING_BRIDGE_WIDTH",
+          "The imported Preset is missing the `bridgeWidth` property.",
+          {object: preset},
+        ));
+      }
+      else if (typeof preset.bridgeWidth !== "number") {
+        errors.push(new ObjectError(
+          "PRESET_INVALID_BRIDGE_WIDTH",
+          "The `bridgeWidth` property of imported Preset is not of type number.",
+          {object: preset},
+        ));
+      }
       if (errors.length > 0) {
         failed.push(errors);
         continue;

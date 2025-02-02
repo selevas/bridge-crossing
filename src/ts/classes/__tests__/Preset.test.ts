@@ -160,6 +160,41 @@ describe("class Preset", () => {
       expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
     });
 
+    it("should return an ObjectError if the imported preset has no bridgeWidth", () => {
+      const data = [
+        {
+          name: "test-preset",
+          people: importData[0].people,
+          torchSide: importData[0].torchSide,
+        }
+      ];
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_MISSING_BRIDGE_WIDTH");
+      expect(presetImport.failed[0][0].message).toBe("The imported Preset is missing the `bridgeWidth` property.");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
+    });
+
+    it("should return an ObjectError if the imported preset has an invalid bridgeWidth", () => {
+      const data = [
+        {
+          name: "test-preset",
+          bridgeWidth: "2",
+          people: importData[0].people,
+          torchSide: importData[0].torchSide,
+        }
+      ];
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_INVALID_BRIDGE_WIDTH");
+      expect(presetImport.failed[0][0].message).toBe("The `bridgeWidth` property of imported Preset is not of type number.");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
+    });
+
   })
 
   describe("Comparison", () => {
