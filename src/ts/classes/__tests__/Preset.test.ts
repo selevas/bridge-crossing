@@ -451,6 +451,7 @@ describe("class Preset", () => {
       expect(clone.equals(original)).toBe(true);
       expect(original.bridgeWidth).toBe(clone.bridgeWidth);
       expect(original.people).toEqual(clone.people);
+      expect(original.people[0]).not.toBe(clone.people[0]); // the people are also cloned
       expect(original.torchSide).toBe(clone.torchSide);
       expect(original.name).not.toBe(clone.name); // only the name is different
       expect(clone.name).toBe("clone");
