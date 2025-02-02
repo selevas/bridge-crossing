@@ -6,7 +6,7 @@ import {
   ValueError
 } from "../Errors";
 
-import Preset from "../Preset";
+import Preset, { PresetImport } from "../Preset";
 
 describe("class Preset", () => {
 
@@ -57,6 +57,74 @@ describe("class Preset", () => {
     });
 
   });
+
+  describe("Import", () => {
+
+    const importData = [
+      {
+        name: "first_preset",
+        bridgeWidth: 2,
+        people: [],
+        torchSide: "start",
+      },
+      {
+        name: "second_preset",
+        bridgeWidth: 2,
+        people: [
+          { name: "Ashely", crossTime: 5, side: "start" },
+          { name: "Orwell", crossTime: 6, side: "start" },
+          { name: "Jacob", crossTime: 4, side: "start" },
+        ],
+        torchSide: "start",
+      },
+      {
+        name: "third_preset",
+        bridgeWidth: 4,
+        people: [
+          { name: "Darth Vader", crossTime: 68, side: "end" },
+          { name: "Luke Skywalker", crossTime: 70, side: "start" },
+          { name: "Emperor Palpatine", crossTime: 66, side: "end" },
+          { name: "Han Solo", crossTime: 72, side: "start" },
+          { name: "Chewbacca", crossTime: 76, side: "start" },
+          { name: "Leia Organa", crossTime: 34, side: "start" },
+          { name: "R2D2", crossTime: 10, side: "start" },
+          { name: "C-3PO", crossTime: 150, side: "start" },
+        ],
+        torchSide: "end",
+      },
+    ];
+
+    it("should import valid preset data without errors", () => {
+      const presetImport: PresetImport = Preset.importPresetObjects(importData);
+      expect(presetImport.successful.length).toBe(3);
+      expect(presetImport.failed.length).toBe(0);
+      const s: Preset[] = presetImport.successful;
+      expect(s[0].name).toBe("first_preset");
+      expect(s[0].bridgeWidth).toBe(2);
+      expect(s[0].people.length).toBe(0);
+      expect(s[0].torchSide).toBe("start");
+      expect(s[1].name).toBe("second_preset");
+      expect(s[1].bridgeWidth).toBe(2);
+      expect(s[1].people.length).toBe(3);
+      expect(s[1].people[0]).toEqual({ name: "Ashely", crossTime: 5, side: "start" });
+      expect(s[1].people[1]).toEqual({ name: "Orwell", crossTime: 6, side: "start" });
+      expect(s[1].people[2]).toEqual({ name: "Jacob", crossTime: 4, side: "start" });
+      expect(s[1].torchSide).toBe("start");
+      expect(s[2].name).toBe("third_preset");
+      expect(s[2].bridgeWidth).toBe(4);
+      expect(s[2].people.length).toBe(8);
+      expect(s[2].people[0]).toEqual({ name: "Darth Vader", crossTime: 68, side: "end" });
+      expect(s[2].people[1]).toEqual({ name: "Luke Skywalker", crossTime: 70, side: "start" });
+      expect(s[2].people[2]).toEqual({ name: "Emperor Palpatine", crossTime: 66, side: "end" });
+      expect(s[2].people[3]).toEqual({ name: "Han Solo", crossTime: 72, side: "start" });
+      expect(s[2].people[4]).toEqual({ name: "Chewbacca", crossTime: 76, side: "start" });
+      expect(s[2].people[5]).toEqual({ name: "Leia Organa", crossTime: 34, side: "start" });
+      expect(s[2].people[6]).toEqual({ name: "R2D2", crossTime: 10, side: "start" });
+      expect(s[2].people[7]).toEqual({ name: "C-3PO", crossTime: 150, side: "start" });
+      expect(s[2].torchSide).toBe("end");
+    });
+
+  })
 
   describe("Comparison", () => {
 

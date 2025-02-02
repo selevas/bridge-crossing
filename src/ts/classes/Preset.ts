@@ -4,10 +4,65 @@ import {
 } from "../types";
 
 import {
+  ObjectError,
   ValueError,
 } from "./Errors";
 
+export interface PresetImport {
+  successful: Preset[]; // The Presets that imported successfully
+  failed: ObjectError[][]; // Errors for each object that failed to import.
+}
+
 export default class Preset {
+
+  /**
+   * Generates an array of Presets from an array of Preset-like objects.
+   *
+   * The purpose of this static method is to read preset information from
+   * an external source (such as a JSON file) and return them as a set of
+   * Preset objects.
+   *
+   * The resulting object contains two properties: One with a list of
+   * Preset objects that were successfully created, another with a list
+   * of ObjectErrors for Presets that couldn't be created.
+   *
+   * @static
+   *
+   * @param {object[]} presets - The array of Preset-like objects.
+   *
+   * @return {PresetImport} - The resulting array of Preset objects
+   *                          and ObjectErrors.
+   */
+  static importPresetObjects(presets: {[id: string]: any}[]): PresetImport {
+    const failed: ObjectError[][] = [];
+    const successful: Preset[] = [];
+    for (const preset of presets) {
+      try {
+        successful.push(new Preset(
+          preset.name,
+          preset.bridgeWidth,
+          preset.people,
+          preset.torchSide,
+        ));
+      } catch (e) {
+        if (e instanceof ValueError) {
+          const err = new ObjectError(
+            e.name,
+            e.message,
+            {object: preset},
+          );
+          err.data.value = e.data.value;
+          failed.push([err]);
+        }
+        if (e instanceof ObjectError) {
+          failed.push([e]);
+        } else {
+          throw e;
+        }
+      }
+    }
+    return { successful, failed };
+  }
 
   #name: string; // The name of the preset.
   #bridgeWidth: number; // The number of people who can cross simultaneously.
