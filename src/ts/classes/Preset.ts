@@ -89,6 +89,20 @@ export default class Preset {
               {object: person},
             ));
           }
+          if (typeof person.name === "undefined") {
+            errors.push(new ObjectError(
+              "PRESET_PERSON_MISSING_NAME",
+              "A Person in the imported Preset is missing the `name` property.",
+              {object: person},
+            ));
+          }
+          else if (typeof person.name !== "string") {
+            errors.push(new ObjectError(
+              "PRESET_PERSON_INVALID_NAME",
+              "A Person in the imported Preset has an invalid `name` property.",
+              {object: person},
+            ));
+          }
         }
       }
       if (typeof preset.torchSide === "undefined") {
