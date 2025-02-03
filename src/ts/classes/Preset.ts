@@ -161,7 +161,7 @@ export default class Preset {
           err.data.value = e.data.value;
           failed.push([err]);
         }
-        if (e instanceof ObjectError) {
+        else if (e instanceof ObjectError) {
           failed.push([e]);
         } else {
           throw e;

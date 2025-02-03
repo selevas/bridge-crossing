@@ -442,6 +442,29 @@ describe("class Preset", () => {
 
     });
 
+    it("should return an ObjectError when failing to instantiate Preset object during import", () => {
+      const data = [
+        {
+          name: "test-preset",
+          bridgeWidth: -3, // does not fail import, but fails instantiation
+          people: [
+            { name: "Baloo", crossTime: 7, side: "start" },
+          ],
+          torchSide: "start",
+        },
+      ];
+
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(0);
+      expect(presetImport.failed.length).toBe(1);
+      expect(presetImport.failed[0].length).toBe(1);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_BRIDGE_WIDTH_TOO_SMALL");
+      expect(presetImport.failed[0][0].message).toBe("The bridge width in your Preset must be greater than 2");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
+      expect(presetImport.failed[0][0].data.value).toEqual(-3);
+    });
+
   })
 
   describe("Comparison", () => {
