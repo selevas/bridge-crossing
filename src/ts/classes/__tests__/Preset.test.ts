@@ -383,6 +383,65 @@ describe("class Preset", () => {
       expect(presetImport.failed[0][0].data.object).toEqual(data[0].people[0]);
     });
 
+    it("should check for multiple errors at once", () => {
+
+      const data = [
+        {
+          bridgeWidth: importData[0].bridgeWidth,
+          people: null,
+          torchSide: "beginning",
+        },
+        importData[1], // this one is correct
+        {
+          name: importData[2].name,
+          bridgeWidth: importData[2].bridgeWidth,
+          people: [
+            ...importData[2].people.slice(0, 3),
+            { crossTime: 72, side: "start" },
+            { name: "Chewbacca", crossTime: "76" },
+            ...importData[2].people.slice(5),
+          ],
+          torchSide: "end",
+        },
+      ];
+
+      const presetImport: PresetImport = Preset.importPresetObjects(data);
+      expect(presetImport.successful.length).toBe(1);
+      expect(presetImport.successful[0]).toBeInstanceOf(Preset);
+      expect(presetImport.successful[0].name).toBe(data[1].name);
+      expect(presetImport.successful[0].bridgeWidth).toBe(data[1].bridgeWidth);
+      expect(presetImport.successful[0].people).toEqual(data[1].people);
+      expect(presetImport.successful[0].torchSide).toBe(data[1].torchSide);
+
+      expect(presetImport.failed.length).toBe(2);
+      expect(Array.isArray(presetImport.failed[0])).toBe(true);
+      expect(presetImport.failed[0].length).toBe(3);
+      expect(presetImport.failed[0][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][0].name).toBe("PRESET_MISSING_NAME");
+      expect(presetImport.failed[0][0].message).toBe("The imported Preset is missing the `name` property.");
+      expect(presetImport.failed[0][0].data.object).toEqual(data[0]);
+      expect(presetImport.failed[0][1]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][1].name).toBe("PRESET_INVALID_PEOPLE");
+      expect(presetImport.failed[0][1].message).toBe("The `people` property of imported Preset is not an array.");
+      expect(presetImport.failed[0][1].data.object).toEqual(data[0]);
+      expect(presetImport.failed[0][2]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[0][2].name).toBe("PRESET_INVALID_TORCH_SIDE");
+      expect(presetImport.failed[0][2].message).toBe("The `torchSide` property of imported Preset is not \"start\" or \"end\".");
+      expect(presetImport.failed[0][2].data.object).toEqual(data[0]);
+
+      expect(Array.isArray(presetImport.failed[1])).toBe(true);
+      expect(presetImport.failed[1].length).toBe(2);
+      expect(presetImport.failed[1][0]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[1][0].name).toBe("PRESET_PERSON_MISSING_NAME");
+      expect(presetImport.failed[1][0].message).toBe("A Person in the imported Preset is missing the `name` property.");
+      expect(presetImport.failed[1][0].data.object).toEqual(data[2].people[3]);
+      expect(presetImport.failed[1][1]).toBeInstanceOf(ObjectError);
+      expect(presetImport.failed[1][1].name).toBe("PRESET_PERSON_INVALID_CROSS_TIME");
+      expect(presetImport.failed[1][1].message).toBe("A Person in the imported Preset has an invalid `crossTime` property.");
+      expect(presetImport.failed[1][1].data.object).toEqual(data[2].people[4]);
+
+    });
+
   })
 
   describe("Comparison", () => {
