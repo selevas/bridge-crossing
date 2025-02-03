@@ -117,7 +117,7 @@ export default class Preset {
               {object: person},
             ));
           }
-          if (false === ['start', 'end'].includes(person.side)) {
+          if (typeof person.side !== "undefined" && false === ['start', 'end'].includes(person.side)) {
             errors.push(new ObjectError(
               "PRESET_PERSON_INVALID_SIDE",
               "A Person in the imported Preset has an invalid `side` property.",
