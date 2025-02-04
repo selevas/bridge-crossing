@@ -1,4 +1,23 @@
+import Preset, { PresetImport } from '../classes/Preset';
 import AppModel from '../model';
+
+const mockImportDefaultPresets = () => {
+  AppModel.importDefaultPresets = jest.fn(() => {
+    return {
+      failed: [],
+      successful: [
+        new Preset(
+          "default",
+          2,
+          [],
+          "start",
+        ),
+      ],
+    };
+  });
+}
+
+mockImportDefaultPresets();
 
 import {ValueError} from '../classes/Errors';
 
@@ -8,46 +27,73 @@ describe("Model", () => {
 
   let model: AppModel;
 
-  describe("Setup and Configuration", () => {
+  describe("Setup and Presets", () => {
+
+    beforeAll(() => {
+      AppModel.importDefaultPresets = jest.fn(() => {
+        return {
+          failed: [],
+          successful: [
+            new Preset(
+              "default",
+              2,
+              [
+                { name: 'Louise', crossTime: 1, side: 'start' },
+                { name: 'Mark', crossTime: 2, side: 'start' },
+                { name: 'Anne', crossTime: 5, side: 'start' },
+                { name: 'John', crossTime: 8, side: 'start' },
+              ],
+              "start",
+            ),
+            new Preset(
+              "empty",
+              2,
+              [],
+              "start",
+            ),
+          ],
+        };
+      });
+    });
 
     beforeEach(() => {
       model = new AppModel();
     });
 
-    it("should assign default values upon instantiation of new AppModel object", () => {
-      expect(model.getDefaultBridgeWidth()).toBe(2);
-      expect(model.getDefaultPeople()).toEqual([
-        { name: 'Louise', crossTime: 1, side: 'start' },
-        { name: 'Mark', crossTime: 2, side: 'start' },
-        { name: 'Anne', crossTime: 5, side: 'start' },
-        { name: 'John', crossTime: 8, side: 'start' },
-      ]);
-      expect(model.getDefaultTorchSide()).toBe('start');
+    afterAll(() => {
+      mockImportDefaultPresets();
     });
 
-    it("should return all defaults when the method getAllDefaults() is called", () => {
-      expect(model.getAllDefaults()).toEqual({
-        bridgeWidth: 2,
-        people: [
-          { name: 'Louise', crossTime: 1, side: 'start' },
-          { name: 'Mark', crossTime: 2, side: 'start' },
-          { name: 'Anne', crossTime: 5, side: 'start' },
-          { name: 'John', crossTime: 8, side: 'start' },
-        ],
-        torchSide: 'start',
-      });
+    it("should assign default preset values upon instantiation of new AppModel object", () => {
+      expect(model.getBridgeWidth()).toBe(2);
+      expect(model.getPeople()).toEqual([
+        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
+        { id: 1, name: 'Mark', crossTime: 2, side: 'start' },
+        { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
+        { id: 3, name: 'John', crossTime: 8, side: 'start' },
+      ]);
+      expect(model.getTorchSide()).toBe('start');
     });
 
   });
 
   describe("Initialization", () => {
 
-    beforeEach(() => {
-      model = new AppModel();
+    afterAll(() => {
+      mockImportDefaultPresets();
     });
 
-    it("should initialize to the default values and no people by default", () => {
-      model.init();
+    it("should initialize to the Preset named \"default\"", () => {
+      AppModel.importDefaultPresets = jest.fn(() => {
+        return {
+          failed: [],
+          successful: [
+            new Preset("preset1", 3, [], "end"),
+            new Preset("default", 2, [], "start"), // It should default to this one
+          ],
+        };
+      });
+      model = new AppModel();
       expect(model.getBridgeWidth()).toBe(2);
       expect(model.getPeopleAtStart().length).toBe(0);
       expect(model.getPeopleAtEnd().length).toBe(0);
@@ -55,16 +101,20 @@ describe("Model", () => {
     });
 
     it("should initialize with the default set of people when specified", () => {
-      model.init({includePeople: true});
-      expect(model.getBridgeWidth()).toBe(2);
-      expect(model.getPeopleAtStart()).toEqual([
-        { id: 0, name: 'Louise', crossTime: 1, side: 'start' },
-        { id: 1, name: 'Mark', crossTime: 2, side: 'start' },
-        { id: 2, name: 'Anne', crossTime: 5, side: 'start' },
-        { id: 3, name: 'John', crossTime: 8, side: 'start' },
-      ]);
+      AppModel.importDefaultPresets = jest.fn(() => {
+        return {
+          failed: [],
+          successful: [
+            new Preset("preset1", 3, [], "end"), // It should default to this one
+            new Preset("preset2", 2, [], "start"),
+          ],
+        };
+      });
+      model = new AppModel();
+      expect(model.getBridgeWidth()).toBe(3);
+      expect(model.getPeopleAtStart().length).toBe(0);
       expect(model.getPeopleAtEnd().length).toBe(0);
-      expect(model.getTorchSide()).toBe('start');
+      expect(model.getTorchSide()).toBe('end');
     });
 
   });
@@ -107,7 +157,6 @@ describe("Model", () => {
 
     beforeEach(() => {
       model = new AppModel();
-      model.init();
     });
 
     it("should get an empty list when there are no people", () => {
@@ -318,10 +367,28 @@ describe("Model", () => {
 
     beforeEach(() => {
       model = new AppModel();
-      model.init({includePeople: true});
     });
 
     it("should get the model state", () => {
+      AppModel.importDefaultPresets = jest.fn(() => {
+        return {
+          failed: [],
+          successful: [
+            new Preset(
+              "default",
+              2,
+              [
+                { name: 'Louise', crossTime: 1, side: 'start' },
+                { name: 'Mark', crossTime: 2, side: 'start' },
+                { name: 'Anne', crossTime: 5, side: 'start' },
+                { name: 'John', crossTime: 8, side: 'start' },
+              ],
+              'start',
+            ),
+          ],
+        };
+      });
+      model = new AppModel();
       expect(model.getState()).toEqual({
         finalState: false,
         successful: false,
@@ -336,6 +403,7 @@ describe("Model", () => {
         turnsElapsed: 0,
         torchSide: 'start',
       });
+      mockImportDefaultPresets();
     });
 
     it("should increment the time passed", () => {
@@ -379,7 +447,6 @@ describe("Model", () => {
 
     beforeEach(() => {
       model = new AppModel();
-      model.init();
     });
 
     it("should instantly complete if no Persons present", () => {

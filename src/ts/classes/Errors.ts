@@ -11,4 +11,5 @@ export class BaseError<TData = {[id: string]: any}> {
 }
 
 export class ObjectError extends BaseError<{[id: string]: any} & {object: any}> {}
+export class ResourceError extends BaseError<{[id: string]: any}> {}
 export class ValueError extends BaseError<{[id: string]: any} & {value: string | number | boolean}> {}

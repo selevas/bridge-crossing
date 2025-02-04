@@ -7,63 +7,89 @@ import {
   Person,
 } from "./types";
 
-import { ValueError } from "./classes/Errors";
+import {
+  ResourceError,
+  ValueError,
+} from "./classes/Errors";
 
-interface Defaults {
-  bridgeWidth: number; // The number of people who can cross simultaneously.
-  people: PersonDefinition[]; // The default set of people.
-  torchSide: Side; // The default starting side for the torch.
-}
+import defaultPresets from "../../data/default-presets.json";
+console.info("defaultPresets:", defaultPresets);
 
-interface InitArgs {
-  includePeople?: boolean; // If true, default people are added
-}
-
-type DefaultsKey = keyof Defaults;
-type DefaultsValue = Defaults[keyof Defaults];
+import Preset, { PresetImport } from "./classes/Preset";
 
 export default class AppModel {
 
-  #defaults: Defaults = {
-    bridgeWidth: 2,
-    people: [
-      { name: 'Louise', crossTime: 1, side: 'start' },
-      { name: 'Mark', crossTime: 2, side: 'start' },
-      { name: 'Anne', crossTime: 5, side: 'start' },
-      { name: 'John', crossTime: 8, side: 'start' },
-    ],
-    torchSide: 'start',
-  };
-
-  /**
-   * Getter for the Defaults object, or its various properties.
-   *
-   * When the value to return is an object, it returns a copy of the object
-   * rather than a reference to the original.
-   *
-   * @private
-   *
-   * @param {string} [property] - The desired default property.
-   *
-   * @return {*} - Specified defaults value.
-   */
-  #getDefaults(property: DefaultsKey | null = null): DefaultsValue | Defaults {
-    switch ( property ) {
-      case null:
-        return JSON.parse(JSON.stringify(this.#defaults));
-      case 'bridgeWidth':
-        return this.#defaults.bridgeWidth;
-      case 'people':
-        return JSON.parse(JSON.stringify(this.#defaults.people));
-      case 'torchSide':
-        return this.#defaults.torchSide;
-    }
+  static importDefaultPresets(): PresetImport {
+    // For now, we get Presets from a local JSON file
+    // In the future, this may change, but this static method just
+    // needs to change its implementation.
+    return Preset.importPresetObjects(defaultPresets);
   }
 
-  getAllDefaults(): Defaults { return (this.#getDefaults(null) as Defaults); }
-  getDefaultBridgeWidth(): number { return (this.#getDefaults('bridgeWidth') as number); }
-  getDefaultPeople(): PersonDefinition[] { return (this.#getDefaults('people') as PersonDefinition[]); }
-  getDefaultTorchSide(): Side { return (this.#getDefaults('torchSide') as Side); }
+  #presets: Preset[];
+  #activePreset: Preset; // A reference to one of those in #presets
+
+  constructor() {
+    const presetImport: PresetImport = AppModel.importDefaultPresets();
+    if (presetImport.failed.length > 0) {
+      // TODO: Add errors to state so that the controller can broadcast them to the
+      // views to display in a dialog or something similar.
+      console.warn(`${presetImport.failed.length} presets failed to load:`);
+      for (const failed of presetImport.failed) {
+        console.warn(failed);
+      }
+    }
+    this.#presets = presetImport.successful;
+    if (presetImport.successful.length === 0) {
+      this.#presets.push(new Preset("default", 2, [], "start"));
+    }
+    const activePreset: Preset = this.getPreset("default") ?? this.#presets[0];
+    this.loadPreset(activePreset);
+    this.init();
+  }
+
+  /**
+   * Getter for a specific Preset.
+   *
+   * Note that it returns a copy of the Preset object rather than the original,
+   * so that it cannot be modified arbitrarily outside of the model.
+   *
+   * @param {string} [property] - The name of the desired preset.
+   *
+   * @return {Preset | undefined} - Returns the selected preset, or undefined if not found.
+   */
+  getPreset(name: string): Preset | undefined {
+    const preset: Preset | undefined = this.#presets.find((p: Preset) => p.name === name);
+    if (preset === undefined) {
+      return undefined;
+    }
+    return preset.clone(preset.name);
+  }
+
+  /**
+   * Loads the specified Preset into the model.
+   *
+   * If it's a string, it will attempt to search for the Preset with that name in the
+   * list of Presets.
+   *
+   * @throws {ResourceError}
+   *
+   * @param {string | Preset} preset - The name or Preset object to load.
+   */
+  loadPreset(preset: string | Preset): void {
+    if (typeof preset === "string") {
+      const p: Preset | undefined = this.getPreset(preset);
+      if (p === undefined) {
+        throw new ResourceError(
+          "PRESET_NOT_FOUND",
+          `The preset "${preset}" was not found in the current list of presets.`,
+        );
+      }
+      preset = p;
+    }
+    this.#activePreset = preset;
+    this.init();
+  }
 
   /**
    * @see {Defaults}
@@ -99,7 +125,7 @@ export default class AppModel {
   addPerson(name: string, crossTime?: TimeInMinutes, side?: Side): PersonID;
 
   /**
-   * Adds a person to the default set.
+   * Adds a person to the active model.
    *
    * @param {string | PersonDefinition} name - The name of the person or a PersonDefinition object.
    * @param {number} [crossTime] - The time it takes for the person to cross the bridge.
@@ -138,10 +164,23 @@ export default class AppModel {
    * This is fine since there is no reason to need to obscure the IDs for each
    * Person, and there is no potential for asynchronous conflicts.
    *
+   * Note that this method relies upon the preexisting IDs found in the Person
+   * array that it utilizes (the `people` parameter, if present, otherwise
+   * `this.#people`). It uses the Persons found in that array to determine what the
+   * next ID should be. Therefore it should NOT be used as part of a .map()
+   * function to generate a list of Persons all at once; rather, it should be used
+   * in a loop as each Person is pushed into the array one by one.
+   *
+   * At some point I may change this to something more robust and less tightly-
+   * coupled to the existing IDs in the Person[] array.
+   *
+   * @param {Person[]} [people] - An array of Person[] objects that it uses to
+   *                              calculate the next ID. Optional.
+   *
    * @return {number} - The new Person ID.
    */
-  #generatePersonId(): number {
-    return Math.max(-1, ...this.#people.map(p => p.id)) + 1;
+  #generatePersonId(people?: Person[]): number {
+    return Math.max(-1, ...(people ?? this.#people).map(p => p.id)) + 1;
   };
 
   /**
@@ -483,25 +522,24 @@ export default class AppModel {
    * This function should be called whenever the user wishes to reset the
    * program, including at the very beginning when the program first loads.
    *
-   * @param {InitArgs} [args] - Init arguments.
-   * @prop {boolean} [args.includePeople] - If true, adds default people. Default false.
-   *
    * @return void
    */
-  init(args: InitArgs = {}): ModelState {
-    this.#bridgeWidth = this.#defaults.bridgeWidth;
+  init(): ModelState {
+    this.#bridgeWidth = this.#activePreset.bridgeWidth;
     this.#people = [];
-    if (args.includePeople === true) {
-      for (const person of this.#defaults.people) {
-        this.addPerson(person);
-      }
+    for (const person of this.#activePreset.people) {
+      // We have to do it this way instead of mapping this.#activePreset.people, because
+      // each ID is generated based on the previous IDs generated within this.#people.
+      // If we change the way that the IDs are generated to something a little less
+      // coupled to this.#people, we may be able to change this at some point in the future.
+      this.#people.push({...person, id: this.#generatePersonId()});
     }
-    this.#torchSide = this.#defaults.torchSide;
+    this.#torchSide = this.#activePreset.torchSide;
 
     this.#timePassed = 0;
     this.#turnsElapsed = 0;
 
-    console.log( this.#defaults );
+    console.log( this.#activePreset );
     console.log( "Model initialized!" );
 
     return this.getState();
