@@ -67,6 +67,41 @@ export default class AppModel {
   }
 
   /**
+   * Getter for the active Preset.
+   *
+   * Note that it returns a copy of the Preset object rather than the original,
+   * so that it cannot be modified arbitrarily outside of the model.
+   *
+   * @return {Preset} - Returns the active preset.
+   */
+  getActivePreset(): Preset {
+    return this.#activePreset.clone(this.#activePreset.name);
+  }
+
+  /**
+   * Getter for the list of Presets.
+   *
+   * Note that each element of the returned array is a copy of its respective Preset
+   * object to prevent modification of the original from outside the model.
+   *
+   * @return {Preset[]} - The list of Presets.
+   */
+  getPresets(): Preset[] {
+    return this.#presets.map((preset: Preset) => preset.clone(preset.name));
+  }
+
+  /**
+   * Creates a new Preset based on the model's current configuration.
+   *
+   * @param {string} name - The name of the new Preset.
+   *
+   * @return {Preset}
+   */
+  createPresetFromModel(name: string): Preset {
+    return new Preset(name, this.#bridgeWidth, this.#people, this.#torchSide);
+  }
+
+  /**
    * Loads the specified Preset into the model.
    *
    * If it's a string, it will attempt to search for the Preset with that name in the
@@ -89,6 +124,62 @@ export default class AppModel {
     }
     this.#activePreset = preset;
     this.init();
+  }
+
+  /**
+   * Saves the provided Preset to the list of Presets.
+   *
+   * If no Preset with the same name exists, it will save it as a new Preset.
+   *
+   * If a Preset with the same name already exists, and the `confirmed`
+   * parameter is true, it will overwrite the Preset.
+   *
+   * If a Preset with the same name already exists, and the `confirmed`
+   * parameter is false, the function will return false and the Preset will
+   * not be saved. This indicates that confirmation is necessary in order to
+   * save the Preset.
+   *
+   * @param {Preset} preset - The Preset to save.
+   * @param {boolean} confirmed - True if an overwrite has been authorized.
+   *
+   * @return {boolean} - True if the Preset was saved successfully.
+   */
+  savePreset(preset: Preset, confirmed: boolean = false): boolean {
+    const existingPresetIndex: number = this.#presets.findIndex((p: Preset): boolean => p.name === preset.name);
+    if (existingPresetIndex === -1) {
+      // The preset was not found, so we go ahead and add it
+      this.#presets.push(preset);
+      return true;
+    }
+    if (confirmed === true) {
+      // The preset was found, but we have confirmation to replace it.
+      this.#presets.splice(existingPresetIndex, 1, preset);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Saves the current model settings to the active Preset.
+   */
+  updateActivePreset(): void {
+    this.#activePreset = this.createPresetFromModel(this.#activePreset.name);
+    this.savePreset(this.#activePreset, true);
+  }
+
+  /**
+   * Returns true if current model settings differ from selected Preset.
+   *
+   * There's definitely room to optimize, but it should work and is simple for now.
+   *
+   * @return {boolean}
+   */
+  hasBeenModified(): boolean {
+    const modifiedPreset: Preset = new Preset("*", this.#bridgeWidth, this.#people, this.#torchSide);
+    if (modifiedPreset.equals(this.#activePreset)) {
+      return false;
+    }
+    return true;
   }
 
   /**

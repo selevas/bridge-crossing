@@ -19,7 +19,7 @@ const mockImportDefaultPresets = () => {
 
 mockImportDefaultPresets();
 
-import {ValueError} from '../classes/Errors';
+import {ResourceError, ValueError} from '../classes/Errors';
 
 console.log = jest.fn();
 
@@ -73,6 +73,144 @@ describe("Model", () => {
         { id: 3, name: 'John', crossTime: 8, side: 'start' },
       ]);
       expect(model.getTorchSide()).toBe('start');
+    });
+
+    it("should return the active Preset", () => {
+      const preset: Preset = model.getActivePreset();
+      expect(preset.name).toBe("default");
+      expect(preset.bridgeWidth).toBe(2);
+      expect(preset.people).toEqual([
+        { name: 'Louise', crossTime: 1, side: 'start' },
+        { name: 'Mark', crossTime: 2, side: 'start' },
+        { name: 'Anne', crossTime: 5, side: 'start' },
+        { name: 'John', crossTime: 8, side: 'start' },
+      ]);
+      expect(preset.torchSide).toBe("start");
+    });
+
+    it("should return all presets when the method getPresets() is called", () => {
+      const presets: Preset[] = model.getPresets();
+      expect(presets.length).toBe(2);
+      expect(presets[0].name).toBe("default");
+      expect(presets[0].bridgeWidth).toBe(2);
+      expect(presets[0].people).toEqual([
+        { name: 'Louise', crossTime: 1, side: 'start' },
+        { name: 'Mark', crossTime: 2, side: 'start' },
+        { name: 'Anne', crossTime: 5, side: 'start' },
+        { name: 'John', crossTime: 8, side: 'start' },
+      ]);
+      expect(presets[0].torchSide).toBe("start");
+      expect(presets[1].name).toBe("empty");
+      expect(presets[1].bridgeWidth).toBe(2);
+      expect(presets[1].people.length).toBe(0);
+      expect(presets[1].torchSide).toBe("start");
+    });
+
+    it("should create a new Preset from the model's current settings", () => {
+      const presets: Preset[] = [];
+      presets.push(model.createPresetFromModel('first'));
+      expect(presets[0].name).toBe("first");
+      expect(presets[0].bridgeWidth).toBe(2);
+      expect(presets[0].people).toEqual([
+        { name: 'Louise', crossTime: 1, side: 'start' },
+        { name: 'Mark', crossTime: 2, side: 'start' },
+        { name: 'Anne', crossTime: 5, side: 'start' },
+        { name: 'John', crossTime: 8, side: 'start' },
+      ]);
+      expect(presets[0].torchSide).toBe("start");
+      model.setBridgeWidth(3);
+      model.removePerson(2);
+      model.setTorchSide("end");
+      presets.push(model.createPresetFromModel('second'));
+      expect(presets[1].name).toBe("second");
+      expect(presets[1].bridgeWidth).toBe(3);
+      expect(presets[1].people).toEqual([
+        { name: 'Louise', crossTime: 1, side: 'start' },
+        { name: 'Mark', crossTime: 2, side: 'start' },
+        { name: 'John', crossTime: 8, side: 'start' },
+      ]);
+      expect(presets[1].torchSide).toBe("end");
+    });
+
+    it("should save a Preset without confirmation if a Preset with its name doesn't already exist", () => {
+      expect(model.savePreset(new Preset('new preset', 4, [], "end"))).toBe(true);
+      expect(model.getPreset('new preset').name).toBe("new preset");
+      expect(model.getPreset('new preset').bridgeWidth).toBe(4);
+      expect(model.getPreset('new preset').people.length).toBe(0);
+      expect(model.getPreset('new preset').torchSide).toBe("end");
+    });
+
+    it("should fail to save a Preset without confirmation if a Preset with its name already exists", () => {
+      expect(model.savePreset(new Preset('default', 4, [], "end"))).toBe(false);
+      expect(model.getPreset('default').name).toBe("default");
+      expect(model.getPreset('default').bridgeWidth).toBe(2);
+      expect(model.getPreset('default').people.length).toBe(4);
+      expect(model.getPreset('default').torchSide).toBe("start");
+    });
+
+    it("should save a Preset with confirmation", () => {
+      expect(model.savePreset(new Preset('default', 4, [], "end"), true)).toBe(true);
+      expect(model.getPreset('default').name).toBe("default");
+      expect(model.getPreset('default').bridgeWidth).toBe(4);
+      expect(model.getPreset('default').people.length).toBe(0);
+      expect(model.getPreset('default').torchSide).toBe("end");
+    });
+
+    it("should load a Preset into the model directly", () => {
+      model.loadPreset(new Preset('direct', 5, [], "end"));
+      const activePreset: Preset = model.getActivePreset();
+      expect(activePreset.name).toBe('direct');
+      expect(activePreset.bridgeWidth).toBe(5);
+      expect(activePreset.people.length).toBe(0);
+      expect(activePreset.torchSide).toBe("end");
+    });
+
+    it("should load a Preset into the model by name", () => {
+      model.savePreset(new Preset('alt', 4, [], "end"));
+      model.loadPreset('alt');
+      const activePreset: Preset = model.getActivePreset();
+      expect(activePreset.name).toBe('alt');
+      expect(activePreset.bridgeWidth).toBe(4);
+      expect(activePreset.people.length).toBe(0);
+      expect(activePreset.torchSide).toBe("end");
+    });
+
+    it("should throw a ResourceError if the name of the specified Preset is not found", () => {
+      let err;
+      try {
+        model.loadPreset('this preset does not exist');
+      } catch (e) {
+        err = e;
+      }
+      expect(err).toBeInstanceOf(ResourceError);
+      expect(err).toEqual({
+        name: "PRESET_NOT_FOUND",
+        message: "The preset \"this preset does not exist\" was not found in the current list of presets.",
+      })
+    });
+
+    it("should update the active preset with the current model settings", () => {
+      model.setBridgeWidth(6);
+      expect(model.getActivePreset().bridgeWidth).toBe(2);
+      model.updateActivePreset();
+      expect(model.getActivePreset().bridgeWidth).toBe(6);
+    });
+
+
+    it("should identify whether the model's settings differ from the active preset", () => {
+      expect(model.hasBeenModified()).toBe(false);
+      model.setTorchSide("end");
+      expect(model.hasBeenModified()).toBe(true);
+      model.updateActivePreset(); // active Preset updated to match model settings
+      expect(model.hasBeenModified()).toBe(false);
+      model.setBridgeWidth(4);
+      expect(model.hasBeenModified()).toBe(true);
+      model.setBridgeWidth(2); // returned to original value
+      expect(model.hasBeenModified()).toBe(false);
+      model.addPerson({name: "Steve", crossTime: 5, side: "start"});
+      expect(model.hasBeenModified()).toBe(true);
+      model.removePerson(4); // remove the last person added, Steve
+      expect(model.hasBeenModified()).toBe(false);
     });
 
   });
