@@ -1,5 +1,25 @@
 import AppController from '../controller';
 import AppView from '../view';
+import AppModel from '../model';
+import Preset from '../classes/Preset';
+
+const mockImportDefaultPresets = () => {
+  AppModel.importDefaultPresets = jest.fn(() => {
+    return {
+      failed: [],
+      successful: [
+        new Preset(
+          "default",
+          2,
+          [],
+          "start",
+        ),
+      ],
+    };
+  });
+}
+
+mockImportDefaultPresets();
 
 console.log = jest.fn();
 
@@ -7,10 +27,12 @@ describe("Controller", () => {
 
   let controller: AppController;
   let views: AppView[];
+  let model: AppModel;
 
   describe("Setup and configuration", () => {
 
     beforeEach(() => {
+      model = new AppModel();
       views = [
         {update: jest.fn()},
         {update: jest.fn()},
@@ -19,7 +41,7 @@ describe("Controller", () => {
     });
 
     it("should automatically subscribe views passed to its constructor", () => {
-      controller = new AppController([views[0], views[2]]);
+      controller = new AppController([views[0], views[2]], model);
       const state = {
         finalState: true,
         successful: true,
@@ -35,7 +57,7 @@ describe("Controller", () => {
     });
 
     it("should no longer broadcast to unsubscribed views", () => {
-      controller = new AppController([...views]);
+      controller = new AppController([...views], model);
       const state = {
         finalState: true,
         successful: true,

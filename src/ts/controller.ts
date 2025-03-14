@@ -13,8 +13,8 @@ export default class AppController {
   #model: AppModel;
   #subscribedViews: AppView[];
 
-  constructor(views: AppView[] = []) {
-    this.#model = new AppModel();
+  constructor(views: AppView[] = [], model: AppModel | undefined) {
+    this.#model = model ?? new AppModel();
     this.#model.init();
     this.#subscribedViews = [];
     for (const view of views) {
