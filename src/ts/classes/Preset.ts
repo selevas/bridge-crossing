@@ -193,7 +193,11 @@ export default class Preset {
     }
     this.#name = name;
     this.#bridgeWidth = bridgeWidth;
-    this.#people = people.map((p: PersonDefinition): PersonDefinition => ({...p}));
+    this.#people = people.map((p: PersonDefinition): PersonDefinition => ({
+      name: p.name,
+      crossTime: p.crossTime,
+      side: p.side,
+    }));
     this.#torchSide = torchSide;
   }
 
