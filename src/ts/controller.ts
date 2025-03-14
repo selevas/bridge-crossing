@@ -73,8 +73,9 @@ export default class AppController {
    *
    * @return void
    */
-  #broadcast(data: ModelState): void {
-    this.#subscribedViews.forEach( view => view.update( {...data} ) );
+  #broadcast(): void {
+    const state: ModelState = this.#model.getState();
+    this.#subscribedViews.forEach( view => view.update( {...state} ) );
   };
 
   /**
@@ -112,7 +113,8 @@ export default class AppController {
    * @return void
    */
   resetModel(): void {
-    this.#broadcast( this.#model.init() );
+    this.#model.init();
+    this.#broadcast();
   }
 
   /**
@@ -122,7 +124,7 @@ export default class AppController {
    */
   addPerson(name: string, crossTime: TimeInMinutes): void {
     this.#model.addPerson(name, crossTime);
-    this.#broadcast( this.#model.init() );
+    this.#broadcast();
   }
 
   /**
@@ -134,7 +136,7 @@ export default class AppController {
    */
   removePerson(id: PersonID): void {
     this.#model.removePerson(id);
-    this.#broadcast( this.#model.init() );
+    this.#broadcast();
   }
 
   /**
@@ -147,7 +149,7 @@ export default class AppController {
    */
   movePerson(personId: PersonID, side: Side): void {
     this.#model.setPersonSide( personId, side );
-    this.#broadcast( this.#model.getState() );
+    this.#broadcast();
   };
 
   /**
@@ -157,7 +159,7 @@ export default class AppController {
    */
   setBridgeWidth(bridgeWidth: number): void {
     this.#model.setBridgeWidth( bridgeWidth );
-    this.#broadcast( this.#model.init() );
+    this.#broadcast();
   }
 
   /**
@@ -166,7 +168,8 @@ export default class AppController {
    * @return void
    */
   stepForward(): void {
-    this.#broadcast( this.#model.stepForward() );
+    this.#model.stepForward();
+    this.#broadcast();
   }
 
   /**
@@ -177,7 +180,8 @@ export default class AppController {
    * @return void
    */
   init(): void {
-    this.#broadcast( this.#model.init() );
+    this.#model.init();
+    this.#broadcast();
   };
 
 };
