@@ -44,3 +44,9 @@ The initial conversion to React shouldn't modify the existing UI at all. Once th
 
 One important note is that I didn't dive deep into making sure the algorithm itself is optimal. It appears to work using simple cases, but for more complex set ups I haven't confirmed that it always does it in the most efficient way. My focus currently is on modernizing the framework rather than improving the algorithm. Eventually I would like to introduce a system to figure out what the optimal algorithm is based on experimentation and comparing many different runs, perhaps as a very lightweight AI model. That will come at a much later point, however, if it comes at all. It is not the current priority.
 
+### 14 Mar, 2025
+
+I set aside this small project temporarily to study, but I'm back and looking to finish the roadmap before moving on to the next thing I have in mind.
+
+I've nearly achieved 100% code coverage for the model tests, and I've started in on the tests for the controller. However, at this point I'm going to take a break on the tests to instead move forward on the React view conversion. Once I have the app working more or less as it did before, I will either finish the Controller tests, or I may move forward with the rest of the roadmap.
+
