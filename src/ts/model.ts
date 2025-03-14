@@ -13,7 +13,6 @@ import {
 } from "./classes/Errors";
 
 import defaultPresets from "../../data/default-presets.json";
-console.info("defaultPresets:", defaultPresets);
 
 import Preset, { PresetImport } from "./classes/Preset";
 
