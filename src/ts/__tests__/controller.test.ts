@@ -80,4 +80,48 @@ describe("Controller", () => {
 
   });
 
+  describe("Model alteration", () => {
+
+    beforeEach(() => {
+      views = [
+        {update: jest.fn()},
+        {update: jest.fn()},
+        {update: jest.fn()},
+      ];
+    });
+
+    it("should add Persons to the model", () => {
+      controller = new AppController([views[0], views[2]], model);
+      const state = {
+        finalState: true,
+        successful: true,
+        peopleAtStart: [],
+        peopleAtEnd: [],
+        timePassed: 0,
+        turnsElapsed: 0,
+        torchSide: 'start',
+      };
+      expect(views[0].update).toHaveBeenCalledWith(state);
+      expect(views[1].update).not.toHaveBeenCalled();
+      expect(views[2].update).toHaveBeenCalledWith(state);
+      controller.addPerson("George", 3);
+      controller.addPerson("Lucy", 5);
+      const newState = {
+        ...state,
+        finalState: false,
+        successful: false,
+        peopleAtStart: [
+          { id: 0, name: "George", crossTime: 3, side: "start" },
+          { id: 1, name: "Lucy", crossTime: 5, side: "start" },
+        ],
+      };
+      expect(views[0].update).toHaveBeenCalledTimes(3);
+      expect(views[1].update).toHaveBeenCalledTimes(0);
+      expect(views[2].update).toHaveBeenCalledTimes(3);
+      expect(views[0].update).toHaveBeenLastCalledWith(newState);
+      expect(views[2].update).toHaveBeenLastCalledWith(newState);
+    });
+
+  });
+
 });
