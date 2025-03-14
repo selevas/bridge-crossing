@@ -103,7 +103,7 @@ export default class AppController {
    * @return {number} - The default bridge width.
    */
   #getBridgeWidth(): number {
-    return this.#model.getDefaultBridgeWidth();
+    return this.#model.getBridgeWidth();
   }
 
   /**
