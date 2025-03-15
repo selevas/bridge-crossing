@@ -4,12 +4,10 @@
   <head>
     <meta charset="utf-8" />
     <title>Bridge Crossing</title>
-    <script src="js/model.js"></script>
-    <script src="js/controller.js"></script>
-    <script src="js/view.js"></script>
+    <script type="module" src="/src/index.tsx"></script>
     <link rel="stylesheet" type="text/css" href="css/style.css" />
   </head>
-  <body id="app" onload="window.appView.call( window.appView );">
-    <!-- view.js will generate content here -->
+  <body id="root" onload="window.appView.call( window.appView );">
+    <!-- index.tsx will generate content here -->
   </body>
 </html>
