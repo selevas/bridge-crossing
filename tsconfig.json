@@ -3,13 +3,19 @@
     "module": "esnext",
     "removeComments": true,
     "target": "esnext",
+    "jxs": "react-jsx",
     "lib": ["esnext", "dom"],
     "preserveConstEnums": true,
     "esModuleInterop": true,
     "outDir": "./dist",
+    "moduleResolution": "Node",
     "resolveJsonModule": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
     "rootDir": "./src",
-    "sourceMap": true
+    "sourceMap": true,
+    "strict": true
   },
-  "include": ["src/ts/*.ts"]
+  "include": ["src"]
 }
