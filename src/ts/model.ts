@@ -44,7 +44,6 @@ export default class AppModel {
     }
     const activePreset: Preset = this.getPreset("default") ?? this.#presets[0];
     this.loadPreset(activePreset);
-    this.init();
   }
 
   /**
